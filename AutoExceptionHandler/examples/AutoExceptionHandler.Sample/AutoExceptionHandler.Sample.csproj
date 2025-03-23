@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <IsPackable>false</IsPackable>
+
+        <RootNamespace>AutoExceptionHandler.Sample</RootNamespace>
+        <PackageId>AutoExceptionHandler.Sample</PackageId>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\AutoExceptionHandler.Annotations\AutoExceptionHandler.Annotations.csproj" />
+        <ProjectReference Include="..\..\src\AutoExceptionHandler\AutoExceptionHandler.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+    </ItemGroup>
+
+</Project>

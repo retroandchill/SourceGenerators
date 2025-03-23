@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <LangVersion>13</LangVersion>
+        <Nullable>enable</Nullable>
+
+        <RootNamespace>AutoExceptionHandler.Annotations</RootNamespace>
+        <PackageId>AutoExceptionHandler.Annotations</PackageId>
+        <Version>1.0.0</Version>
+        <IsPackable>false</IsPackable>
+
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+        <Deterministic>true</Deterministic>
+        <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">True</ContinuousIntegrationBuild>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <DocumentationFile>bin\Debug\AutoExceptionHandler.Annotations.xml</DocumentationFile>
+      <DebugType>portable</DebugType>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <DocumentationFile>bin\Release\AutoExceptionHandler.Annotations.xml</DocumentationFile>
+      <DebugSymbols>true</DebugSymbols>
+      <DebugType>portable</DebugType>
+    </PropertyGroup>
+
+</Project>

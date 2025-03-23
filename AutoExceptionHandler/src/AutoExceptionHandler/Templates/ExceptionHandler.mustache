@@ -1,0 +1,82 @@
+﻿using System;
+
+namespace {{Namespace}};
+
+partial class {{ClassName}} {
+
+  {{#GeneralHandlers}}
+  {{Modifiers}} {{ReturnType}} {{MethodName}}(
+      {{#Parameters}}
+      {{Type}} {{Name}}{{#Comma}}, {{/Comma}}    
+      {{/Parameters}}) {
+    {{#ReturnsVoid}}
+    switch ({{ExceptionParameter}}) {
+      {{#Exceptions}}
+      {{#SingleException}}
+      case {{#ExceptionTypes}}{{ExceptionName}}{{/ExceptionTypes}} e{{Index}}:
+        {{#HasOtherParameters}}
+            {{MethodName}}(e{{Index}}, {{#OtherParameters}}{{Name}}{{#Comma}}, {{/Comma}}{{/OtherParameters}});
+            break;
+        {{/HasOtherParameters}}
+        {{^HasOtherParameters}}
+            {{MethodName}}(e{{Index}});
+            break;
+        {{/HasOtherParameters}}
+      {{/SingleException}}
+      {{^SingleException}}
+      case {{#ExceptionTypes}}{{ExceptionName}}{{#Comma}} or {{/Comma}}{{/ExceptionTypes}}:
+      {{#HasOtherParameters}}
+          {{MethodName}}(({{ExceptionType}}) {{../ExceptionParameter}}, {{#OtherParameters}}{{Name}}{{#Comma}}, {{/Comma}}{{/OtherParameters}});
+          break;
+      {{/HasOtherParameters}}
+      {{^HasOtherParameters}}
+          {{MethodName}}(({{ExceptionType}}) {{../ExceptionParameter}});
+          break;
+      {{/HasOtherParameters}}
+      {{/SingleException}}    
+      {{/Exceptions}}
+    default:
+      {{#FallbackHandler}}
+      {{MethodName}}({{#Parameters}}({{Name}}{{#Comma}}, {{/Comma}}){{/Parameters}});
+      break;
+      {{/FallbackHandler}}
+      {{^FallbackHandler}}
+      throw new NotSupportedException("Unhandled exception type", {{ExceptionParameter}});
+      {{/FallbackHandler}}
+    }
+    {{/ReturnsVoid}}  
+    {{^ReturnsVoid}}
+    return {{ExceptionParameter}} switch {
+      {{#Exceptions}}
+      {{#SingleException}}
+      {{#ExceptionTypes}}{{ExceptionName}}{{/ExceptionTypes}} e{{Index}} =>
+        {{#HasOtherParameters}}
+            {{MethodName}}(e{{Index}}, {{#OtherParameters}}{{Name}}{{#Comma}}, {{/Comma}}{{/OtherParameters}}),
+        {{/HasOtherParameters}}
+        {{^HasOtherParameters}}
+            {{MethodName}}(e{{Index}}),
+        {{/HasOtherParameters}}
+      {{/SingleException}}
+      {{^SingleException}}
+      {{#ExceptionTypes}}{{ExceptionName}}{{#Comma}} or {{/Comma}}{{/ExceptionTypes}} =>
+      {{#HasOtherParameters}}
+          {{MethodName}}(({{ExceptionType}}) {{../ExceptionParameter}}, {{#OtherParameters}}{{Name}}{{#Comma}}, {{/Comma}}{{/OtherParameters}}),
+      {{/HasOtherParameters}}
+      {{^HasOtherParameters}}
+          {{MethodName}}(({{ExceptionType}}) {{../ExceptionParameter}}),
+      {{/HasOtherParameters}}
+      {{/SingleException}}    
+      {{/Exceptions}}
+    _ =>
+      {{#FallbackHandler}}
+      {{MethodName}}({{#Parameters}}{{Name}}{{#Comma}}, {{/Comma}}{{/Parameters}})
+      {{/FallbackHandler}}
+      {{^FallbackHandler}}
+      throw new NotSupportedException("Unhandled exception type", {{ExceptionParameter}})
+      {{/FallbackHandler}}
+    };
+    {{/ReturnsVoid}}
+  }
+  
+  {{/GeneralHandlers}}
+}

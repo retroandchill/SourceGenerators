@@ -1,0 +1,5 @@
+﻿<Project>
+    <PropertyGroup>
+        <DefineConstants Condition="'$(AutoExceptionHandlerAnnotationScope)' == 'runtime'">$(DefineConstants);AUTO_EXCEPTION_HANDLER_SCOPE_RUNTIME</DefineConstants>
+    </PropertyGroup>
+</Project>
