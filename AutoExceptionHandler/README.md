@@ -1,6 +1,6 @@
 ﻿# AutoExceptionHandler
 
-![NuGet Version](https://img.shields.io/nuget/v/AutoExceptionHandler?logo=nuget)![GitHub Release](https://img.shields.io/github/v/release/retroandchill/AutoExceptionHandler?logo=github)[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=retroandchill_ExceptionHandlerGenerator&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=retroandchill_ExceptionHandlerGenerator) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=retroandchill_ExceptionHandlerGenerator&metric=coverage)](https://sonarcloud.io/summary/new_code?id=retroandchill_ExceptionHandlerGenerator)
+[![NuGet Version](https://img.shields.io/nuget/v/AutoExceptionHandler?logo=nuget)](https://www.nuget.org/packages/AutoExceptionHandler/)[![GitHub Release](https://img.shields.io/github/v/release/retroandchill/AutoExceptionHandler?logo=github)](https://github.com/retroandchill/AutoExceptionHandler/releases)[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=retroandchill_ExceptionHandlerGenerator&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=retroandchill_ExceptionHandlerGenerator) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=retroandchill_ExceptionHandlerGenerator&metric=coverage)](https://sonarcloud.io/summary/new_code?id=retroandchill_ExceptionHandlerGenerator)
 
 Simple code generator for creating exception handler classes for .NET projects.
 
