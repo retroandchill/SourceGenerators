@@ -1,14 +1,24 @@
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Retro.ReadOnlyParams.Annotations;
 
 namespace Retro.ReadOnlyParams;
 
+/// <summary>
+/// Analyzes C# code to detect modifications to parameters marked with the [ReadOnly] attribute.
+/// </summary>
+/// <remarks>
+/// This analyzer ensures that any parameter explicitly marked with the [ReadOnly] attribute
+/// is not reassigned or incremented/decremented in any part of the codebase.
+/// </remarks>
+/// <example>
+/// Diagnostics are reported for reassignment, compound assignment, or increment/decrement
+/// operations on parameters indicated as read-only.
+/// </example>
+/// <seealso cref="DiagnosticAnalyzer" />
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class ReadonlyParameterSemanticAnalyzer : DiagnosticAnalyzer {
   private const string DiagnosticId = "RRP001";
@@ -26,9 +36,11 @@ public class ReadonlyParameterSemanticAnalyzer : DiagnosticAnalyzer {
       isEnabledByDefault: true,
       description: Description);
 
+  /// <inheritdoc />
   public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
       ImmutableArray.Create(Rule);
 
+  /// <inheritdoc />
   public override void Initialize(AnalysisContext context) {
     context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
     context.EnableConcurrentExecution();
