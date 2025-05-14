@@ -8,8 +8,11 @@
 
         <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
         <IsRoslynComponent>true</IsRoslynComponent>
+        <IncludeBuildOutput>false</IncludeBuildOutput>
+        <DevelopmentDependency>true</DevelopmentDependency>
 
-        <RootNamespace>Retro.ReadOnlyParams</RootNamespace>
+
+    <RootNamespace>Retro.ReadOnlyParams</RootNamespace>
         <AssemblyName>Retro.ReadOnlyParams</AssemblyName>
 
         <OutputPath>$(MSBuildProjectDirectory)\bin\$(Configuration)\netstandard2.0\</OutputPath>
