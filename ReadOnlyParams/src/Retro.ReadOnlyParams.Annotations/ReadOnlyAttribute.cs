@@ -1,4 +1,6 @@
-﻿namespace Retro.ReadOnlyParams.Annotations;
+﻿using System;
+
+namespace Retro.ReadOnlyParams.Annotations;
 
 /// <summary>
 /// Represents an attribute that marks a method parameter as read-only.

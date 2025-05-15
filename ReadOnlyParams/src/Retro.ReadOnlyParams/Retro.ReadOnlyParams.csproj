@@ -9,27 +9,29 @@
         <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
         <IsRoslynComponent>true</IsRoslynComponent>
         <IncludeBuildOutput>false</IncludeBuildOutput>
-        <DevelopmentDependency>true</DevelopmentDependency>
 
 
         <RootNamespace>Retro.ReadOnlyParams</RootNamespace>
-        <AssemblyName>Retro.ReadOnlyParams</AssemblyName>
+        <PackageId>Retro.ReadOnlyParams</PackageId>
+        <IncludeBuildOutput>false</IncludeBuildOutput>
+        <PackageVersion>1.0.0</PackageVersion>
 
-        <OutputPath>$(MSBuildProjectDirectory)\bin\$(Configuration)\netstandard2.0\</OutputPath>
-
-        <Version>1.0.0-rc.1</Version>
         <Authors>Retro &amp; Chill</Authors>
         <Description>Source analyzer to add compiler enforced readonly parameters (including for primary constructors)</Description>
-        <PackageProjectUrl>https://github.com/retroandchill/Retro.ReadOnlyParams</PackageProjectUrl>
-        <RepositoryUrl>https://github.com/retroandchill/Retro.ReadOnlyParams</RepositoryUrl>
+        <Title>Retro.ReadOnlyParams</Title>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <RepositoryType>git</RepositoryType>
-        <PackageTags>DiagnosticAnalyzer</PackageTags>
+        <RepositoryUrl>https://github.com/retroandchill/Retro.ReadOnlyParams</RepositoryUrl>
+        <RepositoryType>Git</RepositoryType>
+        <PackageTags>analyzers parameters</PackageTags>
         <PackageReleaseNotes>Initial Release</PackageReleaseNotes>
+
+        <PackageProjectUrl>https://github.com/retroandchill/Retro.ReadOnlyParams</PackageProjectUrl>
         <PackageReadmeFile>README.md</PackageReadmeFile>
 
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+        <OutputPath>$(MSBuildProjectDirectory)\bin\$(Configuration)\netstandard2.0\</OutputPath>
 
         <Deterministic>true</Deterministic>
         <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">True</ContinuousIntegrationBuild>
@@ -44,6 +46,10 @@
         </PackageReference>
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.3.0"/>
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.3.0"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Retro.ReadOnlyParams.Annotations\Retro.ReadOnlyParams.Annotations.csproj" PrivateAssets="all" />
     </ItemGroup>
 
     <PropertyGroup>
@@ -80,10 +86,6 @@
             <Pack>True</Pack>
             <PackagePath></PackagePath>
         </None>
-    </ItemGroup>
-    
-    <ItemGroup>
-      <ProjectReference Include="..\Retro.ReadOnlyParams.Annotations\Retro.ReadOnlyParams.Annotations.csproj" PrivateAssets="all" />
     </ItemGroup>
 
 </Project>

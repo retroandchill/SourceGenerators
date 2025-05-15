@@ -2,9 +2,12 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
+        <LangVersion>13</LangVersion>
         <Nullable>enable</Nullable>
-        <LangVersion>latest</LangVersion>
+
+        <RootNamespace>Retro.ReadOnlyParams.Annotations</RootNamespace>
+        <PackageId>Retro.ReadOnlyParams.Annotations</PackageId>
+        <Version>1.0.0</Version>
         <IsPackable>false</IsPackable>
 
         <IncludeSymbols>true</IncludeSymbols>
