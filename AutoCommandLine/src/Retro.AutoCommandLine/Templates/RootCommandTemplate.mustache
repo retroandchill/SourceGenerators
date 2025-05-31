@@ -1,0 +1,18 @@
+using System;
+using System.CommandLine;
+
+namespace {{Namespace}};
+
+partial class {{ClassName}} {
+  public static RootCommand Create() {
+    var rootCommand = new RootCommand({{#HasDescription}}"{{Description}}"{{/HasDescription}});
+
+    {{#HasHandler}}
+    rootCommand.SetHandler(() => {
+      {{MethodName}}();
+    });  
+    {{/HasHandler}}
+
+    return rootCommand;
+  }
+}

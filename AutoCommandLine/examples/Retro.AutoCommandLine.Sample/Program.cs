@@ -1,11 +1,8 @@
 ﻿using System;
 using System.CommandLine;
+using Retro.AutoCommandLine.Sample.Commands;
 
 
-var rootCommand = new RootCommand("Simple command line app");
-
-rootCommand.SetHandler(() => {
-  Console.WriteLine("Hello World!");
-});
+var rootCommand = ProgramRootCommand.Create();
 
 await rootCommand.InvokeAsync(args);

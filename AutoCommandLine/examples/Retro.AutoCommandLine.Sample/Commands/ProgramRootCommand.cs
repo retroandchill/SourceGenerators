@@ -4,7 +4,7 @@ using Retro.AutoCommandLine.Annotations;
 namespace Retro.AutoCommandLine.Sample.Commands;
 
 [RootCommand]
-public class ProgramRootCommand {
+public partial class ProgramRootCommand {
 
   [HandleCommand]
   public static int HandleCommand() {
