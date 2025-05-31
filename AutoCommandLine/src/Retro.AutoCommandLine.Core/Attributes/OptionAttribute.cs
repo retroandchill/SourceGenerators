@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Immutable;
-namespace Retro.AutoCommandLine.Annotations;
+namespace Retro.AutoCommandLine.Core.Attributes;
 
 [AttributeUsage(AttributeTargets.Property)]
 public class OptionAttribute(params string[] aliases) : Attribute {

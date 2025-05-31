@@ -84,5 +84,35 @@ namespace Retro.AutoCommandLine.Properties {
                 return ResourceManager.GetString("CommandBinderTemplate", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to using System;
+        ///using System.CommandLine;
+        ///
+        ///namespace {{Namespace}};
+        ///
+        ///public static class {{Name}}Factory {
+        ///
+        ///  public static Command Create() {
+        ///    var command = new Command(&quot;{{Name}}&quot;);
+        ///
+        ///    {{#Options}}
+        ///    var {{Name}}{{Wrapper}} = new {{Wrapper}}&lt;{{Type}}&gt;(&quot;{{Name}}&quot;) {
+        ///      Description = &quot;{{Description}}&quot;,
+        ///      {{#IsOption}}IsRequired = {{IsRequired}},{{/IsOption}}
+        ///    };
+        ///    {{/Options}}
+        ///
+        ///    {{#Options}}
+        ///    command.Add{{Wrapper}}({{Name}}{{Wrapper}});
+        ///    {{/Options}}
+        ///
+        ///    return [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string CommandFactoryTemplate {
+            get {
+                return ResourceManager.GetString("CommandFactoryTemplate", resourceCulture);
+            }
+        }
     }
 }

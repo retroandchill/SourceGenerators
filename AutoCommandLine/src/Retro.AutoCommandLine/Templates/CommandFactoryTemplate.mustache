@@ -1,0 +1,32 @@
+using System;
+using System.CommandLine;
+using Retro.AutoCommandLine.Core.Handlers;
+
+namespace {{Namespace}};
+
+public static class {{ClassName}}Factory {
+
+  public static Command Create(ICommandHandlerFactory handlerFactory) {
+    var command = new Command("{{ClassName}}");
+
+    {{#Options}}
+    var {{Name}}{{Wrapper}} = new {{Wrapper}}<{{Type}}>({{#IsOption}}[{{#Aliases}}"{{Name}}"{{^IsLast}}, {{/IsLast}}{{/Aliases}}]{{/IsOption}}{{^IsOption}}"{{DisplayName}}"{{/IsOption}}) {
+      Description = "{{Description}}",
+      {{#IsRequired}}
+      IsRequired = true,
+      {{/IsRequired}}
+    };
+    {{/Options}}
+
+    {{#Options}}
+    command.Add{{Wrapper}}({{Name}}{{Wrapper}});
+    {{/Options}}
+
+    {{#HasHandler}}
+    command.Handler = new CommandHandlerAdapter<{{ClassName}}>(handlerFactory, new {{ClassName}}Binder({{#Options}}{{Name}}{{Wrapper}}{{^IsLast}}, {{/IsLast}}{{/Options}}));
+    {{/HasHandler}}
+
+    return command;
+  }
+
+}
