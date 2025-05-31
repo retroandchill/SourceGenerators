@@ -7,7 +7,7 @@ namespace Retro.AutoCommandLine.Sample.Commands;
 public partial class ProgramRootCommand {
 
   [HandleCommand]
-  public static int HandleCommand() {
+  public static int HandleCommand([Option("-r", "--required")]int requiredValue) {
     Console.WriteLine("Hello World!");
     return 0;
   }

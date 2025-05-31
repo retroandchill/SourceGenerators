@@ -1,11 +1,15 @@
 using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text.RegularExpressions;
 using HandlebarsDotNet;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Retro.AutoCommandLine.Annotations;
+using Retro.AutoCommandLine.Model;
 using Retro.AutoCommandLine.Properties;
 
 namespace Retro.AutoCommandLine.Generators;
@@ -64,9 +68,8 @@ public class RootCommandGenerator : IIncrementalGenerator {
     var rootCommandAttribute = classSymbol.GetAttributes()
         .Single(x => x.AttributeClass?.ToDisplayString() == typeof(RootCommandAttribute).FullName);
     
-    var description = rootCommandAttribute.NamedArguments
-        .Where(x => x.Key == "Description")
-        .Select(x => x.Value.Value as string)
+    var description = rootCommandAttribute.ConstructorArguments
+        .Select(x => x.Value as string)
         .FirstOrDefault();
 
     var templateParams = new {
@@ -75,7 +78,8 @@ public class RootCommandGenerator : IIncrementalGenerator {
         HasDescription = description is not null,
         Description = description,
         HasHandler = GetHandleCommandMethod(classSymbol, context, out var handleCommandMethod),
-        MethodName = handleCommandMethod?.Name
+        MethodName = handleCommandMethod?.Name,
+        Options = GetOptions(handleCommandMethod)
     };
     
     
@@ -112,6 +116,58 @@ public class RootCommandGenerator : IIncrementalGenerator {
           ));
       return false;
     }
+  }
+
+  private static List<CommandOption> GetOptions(IMethodSymbol? methodSymbol) {
+    if (methodSymbol is null) {
+      return [];
+    }
+    
+    return methodSymbol.Parameters
+        .Select((x, i) => GetCommandOption(x, i == methodSymbol.Parameters.Length - 1))
+        .ToList();
+  }
+
+  private static CommandOption GetCommandOption(IParameterSymbol parameterSymbol, bool isLast) {
+    var commandOptionAttribute = parameterSymbol.GetAttributes()
+        .SingleOrDefault(x => x.AttributeClass?.ToDisplayString() == typeof(OptionAttribute).FullName);
+
+    List<CommandAlias> aliases;
+    if (commandOptionAttribute is null) {
+      aliases = [GetDefaultAlias(parameterSymbol)];
+    } else {
+      TypedConstant? constructorArgument = commandOptionAttribute.ConstructorArguments.Length > 0 ? commandOptionAttribute.ConstructorArguments[0] : null;
+      aliases = constructorArgument?.Values    
+          .Select(x => x.Value)
+          .Cast<string>()
+          .Select((x, i) => new CommandAlias {
+              Name = x,
+              IsLast = i == constructorArgument.Value.Values.Length - 1
+          })
+          .ToList() ?? [];
+    }
+
+    return new CommandOption {
+        Type = parameterSymbol.Type.ToDisplayString(),
+        Name = parameterSymbol.Name,
+        Aliases = aliases,
+        Description = commandOptionAttribute?.NamedArguments
+            .Where(x => x.Key == nameof(OptionAttribute.Description))
+            .Select(x => x.Value.Value as string)
+            .FirstOrDefault(),
+        IsLast = isLast
+    };
+  }
+  
+  private static CommandAlias GetDefaultAlias(IParameterSymbol parameterSymbol) {
+    return new CommandAlias {
+        Name = $"--{string.Join("-", SplitByCapitalsRegex(parameterSymbol.Name)).ToLower().Replace('_', '-')}",
+        IsLast = true
+    };
+  }
+  
+  private static string[] SplitByCapitalsRegex(string? input) {
+    return string.IsNullOrEmpty(input) ? [] : Regex.Split(input, @"(?=[A-Z])");
   }
 
 }
