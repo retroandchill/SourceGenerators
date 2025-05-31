@@ -62,26 +62,26 @@ namespace Retro.AutoCommandLine.Properties {
         /// <summary>
         ///   Looks up a localized string similar to using System;
         ///using System.CommandLine;
+        ///using System.CommandLine.Binding;
         ///
         ///namespace {{Namespace}};
         ///
-        ///partial class {{ClassName}} {
-        ///  public static RootCommand Create() {
-        ///    var rootCommand = new RootCommand({{#HasDescription}}&quot;{{Description}}&quot;{{/HasDescription}});
+        ///public class {{ClassName}}Binder : BinderBase&lt;{{ClassName}}&gt; {
+        ///  {{#Options}}
+        ///  private readonly {{Wrapper}}&lt;{{Type}}&gt; _{{Name}}{{Wrapper}};  
+        ///  {{/Options}}
         ///
-        ///    {{#HasHandler}}
-        ///    rootCommand.SetHandler(() =&gt; {
-        ///      {{MethodName}}();
-        ///    });  
-        ///    {{/HasHandler}}
-        ///
-        ///    return rootCommand;
+        ///  public {{ClassName}}Binder({{#Options}}{{Wrapper}}&lt;{{Type}}&gt; {{Name}}{{Wrapper}}{{^IsLast}}, {{/IsLast}}{{/Options}}) {
+        ///    {{#Options}}
+        ///    _{{Name}}{{Wrapper}} = {{Name}}{{Wrapper}};
+        ///    {{/Options}} 
         ///  }
-        ///}.
+        ///
+        ///  protected override {{Cl [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string RootCommandTemplate {
+        internal static string CommandBinderTemplate {
             get {
-                return ResourceManager.GetString("RootCommandTemplate", resourceCulture);
+                return ResourceManager.GetString("CommandBinderTemplate", resourceCulture);
             }
         }
     }

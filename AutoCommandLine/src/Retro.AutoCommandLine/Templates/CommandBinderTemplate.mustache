@@ -1,0 +1,25 @@
+using System;
+using System.CommandLine;
+using System.CommandLine.Binding;
+
+namespace {{Namespace}};
+
+public class {{ClassName}}Binder : BinderBase<{{ClassName}}> {
+  {{#Options}}
+  private readonly {{Wrapper}}<{{Type}}> _{{Name}}{{Wrapper}};  
+  {{/Options}}
+
+  public {{ClassName}}Binder({{#Options}}{{Wrapper}}<{{Type}}> {{Name}}{{Wrapper}}{{^IsLast}}, {{/IsLast}}{{/Options}}) {
+    {{#Options}}
+    _{{Name}}{{Wrapper}} = {{Name}}{{Wrapper}};
+    {{/Options}} 
+  }
+
+  protected override {{ClassName}} GetBoundValue(BindingContext bindingContext) {
+    return new {{ClassName}} {
+      {{#Options}}
+      {{Name}} = bindingContext.ParseResult.GetValueFor{{Wrapper}}(_{{Name}}{{Wrapper}}){{^IsLast}},{{/IsLast}}
+      {{/Options}}
+    };
+  }
+}
