@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\src\Retro.AutoCommandLine.Annotations\Retro.AutoCommandLine.Annotations.csproj" />
         <ProjectReference Include="..\..\src\Retro.AutoCommandLine\Retro.AutoCommandLine.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
     </ItemGroup>
 
