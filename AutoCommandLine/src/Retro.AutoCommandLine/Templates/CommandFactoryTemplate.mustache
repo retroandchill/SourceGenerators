@@ -7,11 +7,18 @@ namespace {{Namespace}};
 public static class {{ClassName}}Factory {
 
   public static Command Create(ICommandHandlerFactory handlerFactory) {
-    var command = new Command("{{ClassName}}");
+    {{#IsRootCommand}}
+    var command = new RootCommand({{#HasDescription}}{{Description}}{{/HasDescription}});  
+    {{/IsRootCommand}}
+    {{^IsRootCommand}}
+    var command = new Command("{{CommandName}}"{{#HasDescription}}, {{Description}}{{/HasDescription}});
+    {{/IsRootCommand}}
 
     {{#Options}}
     var {{Name}}{{Wrapper}} = new {{Wrapper}}<{{Type}}>({{#IsOption}}[{{#Aliases}}"{{Name}}"{{^IsLast}}, {{/IsLast}}{{/Aliases}}]{{/IsOption}}{{^IsOption}}"{{DisplayName}}"{{/IsOption}}) {
-      Description = "{{Description}}",
+      {{#HasDescription}}
+      Description = {{Description}},
+      {{/HasDescription}}
       {{#IsRequired}}
       IsRequired = true,
       {{/IsRequired}}

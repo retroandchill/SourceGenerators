@@ -4,6 +4,7 @@ using System.Linq;
 using CaseConverter;
 using HandlebarsDotNet;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Retro.AutoCommandLine.Core;
 using Retro.AutoCommandLine.Core.Attributes;
@@ -21,7 +22,7 @@ public class CommandBinderGenerator : IIncrementalGenerator {
             (s, _) => s is ClassDeclarationSyntax or StructDeclarationSyntax or InterfaceDeclarationSyntax or RecordDeclarationSyntax,
             (ctx, _) => {
               var classNode = (TypeDeclarationSyntax)ctx.Node;
-              var symbol = ctx.SemanticModel.GetDeclaredSymbol(classNode);
+              var symbol = ModelExtensions.GetDeclaredSymbol(ctx.SemanticModel, classNode);
 
               if (symbol is null || symbol.IsAbstract) {
                 return null;
@@ -51,10 +52,21 @@ public class CommandBinderGenerator : IIncrementalGenerator {
     var optionBindings = validProperties
         .Select((x, i) => GetOptionBinding(x, i == validProperties.Count - 1))
         .ToList();
+
+    var description = commandAttribute.NamedArguments
+        .FirstOrDefault(x => x.Key == nameof(CommandAttribute.Description)).Value.Value?.ToString()
+        ?? classSymbol.GetDocumentationCommentXml().GetSummaryTag();
     
     var templateParams = new {
         Namespace = classSymbol.ContainingNamespace.ToDisplayString(),
         ClassName = classSymbol.Name,
+        IsRootCommand = commandAttribute.NamedArguments.Any(x => x is {
+            Key: nameof(CommandAttribute.IsRootCommand),
+            Value.Value: true
+        }),
+        CommandName = commandAttribute.ConstructorArguments.Select(x => x.Value).Cast<string>().FirstOrDefault() ?? classSymbol.Name,
+        HasDescription = description is not null,
+        Description = description is not null ? SymbolDisplay.FormatLiteral(description, true) : null,
         Options = optionBindings,
         HasHandler = commandAttribute.NamedArguments.Any(x => x is {
             Key: nameof(CommandAttribute.HasHandler),
@@ -74,11 +86,13 @@ public class CommandBinderGenerator : IIncrementalGenerator {
         .Where(x => x.AttributeClass?.ToDisplayString() == typeof(OptionAttribute).FullName || x.AttributeClass?.ToDisplayString() == typeof(ArgumentAttribute).FullName)
         .Select(x => new {
             IsOption = x.AttributeClass?.ToDisplayString() == typeof(OptionAttribute).FullName,
-            Description = x.NamedArguments.FirstOrDefault(y => y.Key == "Description").Value.Value?.ToString(),
+            Description = x.NamedArguments.FirstOrDefault(y => y.Key == nameof(OptionAttribute.Description)).Value.Value as string,
             Aliases = GetAliases(propertySymbol, x)
         })
         .DefaultIfEmpty(new { IsOption = false, Description = (string?) null, Aliases = new List<OptionAlias>() })
         .FirstOrDefault();
+    
+    var description = optionAttribute!.Description ?? propertySymbol.GetDocumentationCommentXml().GetSummaryTag();
 
     return new OptionBinding {
         Wrapper = optionAttribute!.IsOption ? OptionType.Option : OptionType.Argument,
@@ -86,7 +100,7 @@ public class CommandBinderGenerator : IIncrementalGenerator {
         Name = propertySymbol.Name,
         DisplayName = optionAttribute.IsOption ? $"--{propertySymbol.Name.ToKebabCase()}" : propertySymbol.Name,
         Aliases = optionAttribute.Aliases,
-        Description = optionAttribute.Description ?? propertySymbol.GetDocumentationCommentXml(),
+        Description = description is not null ? SymbolDisplay.FormatLiteral(description, true) : null,
         IsRequired = optionAttribute.IsOption && IsPropertyRequired(propertySymbol),
         IsLast = isLast
     };

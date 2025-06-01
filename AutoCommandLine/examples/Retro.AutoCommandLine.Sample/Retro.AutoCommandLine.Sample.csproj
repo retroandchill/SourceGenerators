@@ -7,6 +7,14 @@
         <OutputType>Exe</OutputType>
     </PropertyGroup>
 
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <DocumentationFile>bin\Debug\Retro.AutoCommandLine.Sample.xml</DocumentationFile>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <DocumentationFile>bin\Release\Retro.AutoCommandLine.Sample.xml</DocumentationFile>
+    </PropertyGroup>
+
     <ItemGroup>
         <ProjectReference Include="..\..\src\Retro.AutoCommandLine.Core\Retro.AutoCommandLine.Core.csproj" />
         <ProjectReference Include="..\..\src\Retro.AutoCommandLine\Retro.AutoCommandLine.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
