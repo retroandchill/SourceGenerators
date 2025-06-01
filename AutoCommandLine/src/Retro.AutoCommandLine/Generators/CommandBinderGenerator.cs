@@ -22,7 +22,7 @@ public class CommandBinderGenerator : IIncrementalGenerator {
             (s, _) => s is ClassDeclarationSyntax or StructDeclarationSyntax or InterfaceDeclarationSyntax or RecordDeclarationSyntax,
             (ctx, _) => {
               var classNode = (TypeDeclarationSyntax)ctx.Node;
-              var symbol = ModelExtensions.GetDeclaredSymbol(ctx.SemanticModel, classNode);
+              var symbol = ctx.SemanticModel.GetDeclaredSymbol(classNode);
 
               if (symbol is null || symbol.IsAbstract) {
                 return null;
@@ -31,16 +31,44 @@ public class CommandBinderGenerator : IIncrementalGenerator {
               var hasRootCommandAttribute = symbol.GetAttributes()
                   .Any(attr => attr.AttributeClass?.ToDisplayString() == typeof(CommandAttribute).FullName);
 
-              return hasRootCommandAttribute ? symbol as INamedTypeSymbol : null;
+              return hasRootCommandAttribute ? symbol : null;
             })
-        .Where(m => m is not null);
+        .Where(m => m is not null)
+        .Collect();
 
-    context.RegisterSourceOutput(commands, (spc, source) => {
-      Execute(source!, spc);
+    var handlers = context.SyntaxProvider.CreateSyntaxProvider(
+        (s, _) => s is ClassDeclarationSyntax or StructDeclarationSyntax,
+        (ctx, _) => {
+          var classNode = (TypeDeclarationSyntax)ctx.Node;
+          var symbol = ctx.SemanticModel.GetDeclaredSymbol(classNode);
+          return symbol?.AllInterfaces
+              .Where(x => x.IsGenericType && x.ConstructedFrom.GetMetadataName() == typeof(ICommandHandler<>).FullName)
+              .Select(x => new {
+                  ClassSymbol = symbol,
+                  BoundType = x.TypeArguments[0]
+              })
+              .FirstOrDefault();
+        })
+        .Where(m => m is not null)
+        .Collect();
+    
+    var combinedTypes = commands.Combine(handlers);
+
+    context.RegisterSourceOutput(combinedTypes, (spc, source) => {
+      var handlerTypes = source.Right
+          .GroupBy(x => x!.BoundType, SymbolEqualityComparer.Default)
+          .ToDictionary(x => x.Key, x => x
+              .Select(y => y!.ClassSymbol)
+              .First(), SymbolEqualityComparer.Default);
+      
+      foreach (var classSymbol in source.Left) {
+        handlerTypes.TryGetValue(classSymbol!, out var handlerClassSymbol);
+        GenerateIndividualHandlers(classSymbol!, handlerClassSymbol, spc);
+      }
     });
   }
 
-  private static void Execute(INamedTypeSymbol classSymbol, SourceProductionContext context) {
+  private static void GenerateIndividualHandlers(INamedTypeSymbol classSymbol, INamedTypeSymbol? handlerType, SourceProductionContext context) {
     var commandAttribute = classSymbol.GetAttributes()
         .Single(x => x.AttributeClass?.ToDisplayString() == typeof(CommandAttribute).FullName);
     
@@ -68,10 +96,7 @@ public class CommandBinderGenerator : IIncrementalGenerator {
         HasDescription = description is not null,
         Description = description is not null ? SymbolDisplay.FormatLiteral(description, true) : null,
         Options = optionBindings,
-        HasHandler = commandAttribute.NamedArguments.Any(x => x is {
-            Key: nameof(CommandAttribute.HasHandler),
-            Value.Value: true
-        })
+        HasHandler = handlerType is not null
     };
 
     var handlebars = Handlebars.Create();

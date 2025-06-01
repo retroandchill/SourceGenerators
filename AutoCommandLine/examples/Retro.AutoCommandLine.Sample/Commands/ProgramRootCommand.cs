@@ -9,7 +9,7 @@ namespace Retro.AutoCommandLine.Sample.Commands;
 /// <summary>
 /// A simple root command
 /// </summary>
-[Command(IsRootCommand = true, HasHandler = true)]
+[Command(IsRootCommand = true)]
 public record ProgramRootCommand {
   
   /// <summary>

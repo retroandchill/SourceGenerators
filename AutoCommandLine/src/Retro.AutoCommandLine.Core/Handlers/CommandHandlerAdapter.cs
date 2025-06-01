@@ -7,7 +7,7 @@ using Retro.ReadOnlyParams.Annotations;
 namespace Retro.AutoCommandLine.Core.Handlers;
 
 public class CommandHandlerAdapter<TCommand>([ReadOnly] ICommandHandlerFactory factory,
-                                             [ReadOnly] BinderBase<TCommand> binder) : ICommandHandler {
+                                             [ReadOnly] ICommandBinder<TCommand> binder) : ICommandHandler {
 
   
   
@@ -17,11 +17,7 @@ public class CommandHandlerAdapter<TCommand>([ReadOnly] ICommandHandlerFactory f
 
   public Task<int> InvokeAsync(InvocationContext context) {
     var handler = factory.Create<TCommand>();
-    if (!((IValueSource)binder).TryGetValue(binder, context.BindingContext, out var boundValue)) {
-      throw new InvalidOperationException("Could not bind command");
-    }
-
-    var options = (TCommand) boundValue!;
-    return handler.HandleAsync(options, context.GetCancellationToken());
+    var boundValue = binder.Bind(context);
+    return handler.HandleAsync(boundValue, context.GetCancellationToken());
   }
 }

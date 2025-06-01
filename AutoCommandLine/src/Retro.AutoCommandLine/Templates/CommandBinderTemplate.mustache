@@ -1,10 +1,12 @@
 using System;
 using System.CommandLine;
 using System.CommandLine.Binding;
+using System.CommandLine.Invocation;
+using Retro.AutoCommandLine.Core.Handlers;
 
 namespace {{Namespace}};
 
-public class {{ClassName}}Binder : BinderBase<{{ClassName}}> {
+public sealed class {{ClassName}}Binder : BinderBase<{{ClassName}}>, ICommandBinder<{{ClassName}}> {
   {{#Options}}
   private readonly {{Wrapper}}<{{Type}}> _{{Name}}{{Wrapper}};  
   {{/Options}}
@@ -13,6 +15,10 @@ public class {{ClassName}}Binder : BinderBase<{{ClassName}}> {
     {{#Options}}
     _{{Name}}{{Wrapper}} = {{Name}}{{Wrapper}};
     {{/Options}} 
+  }
+
+  public {{ClassName}} Bind(InvocationContext context) {
+    return GetBoundValue(context.BindingContext);
   }
 
   protected override {{ClassName}} GetBoundValue(BindingContext bindingContext) {
