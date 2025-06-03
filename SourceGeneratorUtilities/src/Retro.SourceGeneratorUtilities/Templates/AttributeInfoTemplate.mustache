@@ -1,0 +1,30 @@
+﻿using Retro.SourceGeneratorUtilities.Core.Attributes;
+#nullable enable
+
+namespace {{Namespace}};
+
+public record {{AttributeName}}Info{{#HasParentClass}} : {{ParentAttribute}}Info{{/HasParentClass}} {
+
+  {{#Constructors}}
+  public {{../AttributeName}}Info({{#Parameters}}{{Type}} {{Name}}{{^IsLast}}, {{/IsLast}}{{/Parameters}}){{#HasExternalCall}} : {{ConstructorInitializer}}({{#InitializerArguments}}{{Expression}}{{^IsLast}}, {{/IsLast}}{{/InitializerArguments}}){{/HasExternalCall}} {
+    {{#Assignments}}
+    {{Left}} = {{Right}};
+    {{/Assignments}}
+  }
+  {{/Constructors}}
+
+  {{#Properties}}
+  {{Accessibility}} {{Type}} {{Name}} { get; init; }
+  {{/Properties}}
+
+}
+
+public static class {{AttributeName}}InfoExtensions {
+
+/*
+  public static {{AttributeName}}Info New(this AttributeInfo<{{AttributeName}}> info) {
+    return new {{AttributeName}}Info();
+  }
+*/
+
+}
