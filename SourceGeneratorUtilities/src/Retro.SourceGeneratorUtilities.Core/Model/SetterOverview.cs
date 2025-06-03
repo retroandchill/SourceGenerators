@@ -1,5 +1,3 @@
 ﻿namespace Retro.SourceGeneratorUtilities.Core.Model;
 
-public record DefaultParameterInfo {
-  
-}
+public record struct SetterOverview(SetterType Type);

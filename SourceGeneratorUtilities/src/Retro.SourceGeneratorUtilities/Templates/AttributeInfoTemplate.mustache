@@ -3,28 +3,27 @@
 
 namespace {{Namespace}};
 
-public record {{AttributeName}}Info{{#HasParentClass}} : {{ParentAttribute}}Info{{/HasParentClass}} {
+public record {{AttributeName}}Info{{#HasPrimaryConstructor}}({{#PrimaryConstructor.Parameters}}{{Type}} {{Name}}{{#HasDefaultValue}} = {{DefaultValue}}{{/HasDefaultValue}}{{^IsLast}}, {{/IsLast}}{{/PrimaryConstructor.Parameters}}){{/HasPrimaryConstructor}}{{#HasParentClass}} : {{ParentAttribute}}Info{{#HasPrimaryConstructor}}({{#PrimaryConstructor.HasInitializer}}{{#PrimaryConstructor.Initializer.Arguments}}{{Expression}}{{^IsLast}}, {{/IsLast}}{{/PrimaryConstructor.Initializer.Arguments}}{{/PrimaryConstructor.HasInitializer}}){{/HasPrimaryConstructor}}{{/HasParentClass}} {
+
+  {{#Properties}}
+  {{Accessibility}} {{Type}} {{Name}} { get;{{#HasSetter}} {{Setter.Type}};{{/HasSetter}} }{{#HasInitializer}} = {{Initializer}};{{/HasInitializer}}
+  {{/Properties}}
 
   {{#Constructors}}
-  public {{../AttributeName}}Info({{#Parameters}}{{Type}} {{Name}}{{^IsLast}}, {{/IsLast}}{{/Parameters}}){{#HasExternalCall}} : {{ConstructorInitializer}}({{#InitializerArguments}}{{Expression}}{{^IsLast}}, {{/IsLast}}{{/InitializerArguments}}){{/HasExternalCall}} {
+  public {{../AttributeName}}Info({{#Parameters}}{{Type}} {{Name}}{{#HasDefaultValue}} = {{DefaultValue}}{{/HasDefaultValue}}{{^IsLast}}, {{/IsLast}}{{/Parameters}}){{#HasInitializer}} : {{Initializer.Type}}({{#Initializer.Arguments}}{{Expression}}{{^IsLast}}, {{/IsLast}}{{/Initializer.Arguments}}){{/HasInitializer}} {
     {{#Assignments}}
     {{Left}} = {{Right}};
     {{/Assignments}}
   }
+  
   {{/Constructors}}
-
-  {{#Properties}}
-  {{Accessibility}} {{Type}} {{Name}} { get; init; }
-  {{/Properties}}
 
 }
 
 public static class {{AttributeName}}InfoExtensions {
 
-/*
   public static {{AttributeName}}Info New(this AttributeInfo<{{AttributeName}}> info) {
     return new {{AttributeName}}Info();
   }
-*/
 
 }

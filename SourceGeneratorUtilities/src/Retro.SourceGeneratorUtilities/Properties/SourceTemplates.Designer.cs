@@ -63,21 +63,15 @@ namespace Retro.SourceGeneratorUtilties.Generator.Properties {
         ///   Looks up a localized string similar to using Retro.SourceGeneratorUtilities.Core.Attributes;
         ///#nullable enable
         ///
-        /// /*
         ///namespace {{Namespace}};
         ///
+        ///
+        /// /*
         ///public record {{AttributeName}}Info{{#HasParentClass}} : {{ParentAttribute}}Info{{/HasParentClass}} {
         ///
         ///  {{#Constructors}}
-        ///  public {{../AttributeName}}Info({{#Parameters}}{{Type}} {{Name}}{{^IsLast}}, {{/IsLast}}{{/Parameters}}) {
-        ///    {{#Assignments}}
-        ///    {{Left}} = {{Right}};
-        ///    {{/Assignments}}
-        ///  }
-        ///  {{/Constructors}}
-        ///
-        ///  {{#Properties}}
-        ///  {{Accessibility}} {{Type}} {{Name}} { get; init;  [rest of string was truncated]&quot;;.
+        ///  public {{../AttributeName}}Info({{#Parameters}}{{Type}} {{Name}}{{^IsLast}}, {{/IsLast}}{{/Parameters}}){{#HasInitializer}} : {{Initializer.Type}}({{#Initializer.Arguments}}{{Expression}}{{^IsLast}}, {{/IsLast}}{{/Initializer.Arguments}}){{/HasInitializer}} {
+        ///    {{#Assignm [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string AttributeInfoTemplate {
             get {

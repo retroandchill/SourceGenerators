@@ -2,4 +2,4 @@
 
 namespace Retro.SourceGeneratorUtilities.Core.Model;
 
-public record struct ConstructorInitializerOverview(InitializerType Type, ImmutableArray<ArgumentOverview> Arguments);
+public record ConstructorInitializerOverview(InitializerType Type, ImmutableArray<ArgumentOverview> Arguments);
