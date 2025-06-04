@@ -1,4 +1,6 @@
-﻿using Retro.SourceGeneratorUtilities.Core.Attributes;
+﻿using System;
+using Retro.SourceGeneratorUtilities.Core.Attributes;
+using Retro.SourceGeneratorUtilities.Core.Types;
 #nullable enable
 
 namespace {{Namespace}};
@@ -23,7 +25,18 @@ public record {{AttributeName}}Info{{#HasPrimaryConstructor}}({{#PrimaryConstruc
 public static class {{AttributeName}}InfoExtensions {
 
   public static {{AttributeName}}Info New(this AttributeInfo<{{AttributeName}}> info) {
-    return new {{AttributeName}}Info();
+    var args = info.Data.ConstructorArguments;
+
+    {{#AllConstructors}}
+    if (info.Data.HasMatchingConstructor({{#Parameters}}typeof({{NonNullableType}}){{^IsLast}}, {{/IsLast}}{{/Parameters}})) {
+      {{#Parameters}}
+      var arg{{Index}} = info.Data.ConstructorArguments[{{Index}}].GetTypedValue<{{Type}}>();
+      {{/Parameters}}
+      return new {{../AttributeName}}Info({{#Parameters}}arg{{Index}}{{^IsLast}}, {{/IsLast}}{{/Parameters}});   
+    }
+    
+    {{/AllConstructors}}
+    throw new InvalidOperationException("Cannot create {{AttributeName}}Info"); 
   }
 
 }

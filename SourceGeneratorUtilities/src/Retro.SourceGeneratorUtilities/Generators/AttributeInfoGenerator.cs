@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Retro.SourceGeneratorUtilities.Core.Attributes;
 using Retro.SourceGeneratorUtilities.Core.Members;
+using Retro.SourceGeneratorUtilities.Core.Model;
 using Retro.SourceGeneratorUtilities.Core.Types;
 using Retro.SourceGeneratorUtilities.Formatters;
 using Retro.SourceGeneratorUtilties.Generator.Properties;
@@ -76,6 +77,8 @@ public class AttributeInfoGenerator : IIncrementalGenerator {
         HasPrimaryConstructor = primaryConstructor is not null,
         PrimaryConstructor = primaryConstructor,
         Constructors = constructors,
+        AllConstructors = constructors
+            .Concat(primaryConstructor is not null ? new [] { primaryConstructor } : Array.Empty<ConstructorOverview>()),
         Properties = classSymbol.GetProperties()
             .ToList()
     };

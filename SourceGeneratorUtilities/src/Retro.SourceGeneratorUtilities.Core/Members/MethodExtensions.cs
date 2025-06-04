@@ -44,11 +44,11 @@ public static class MethodExtensions {
   public static ImmutableArray<ParameterOverview> GetParameters(this IMethodSymbol symbol) {
     return [
         ..symbol.Parameters
-            .Select((x, i) => x.GetParameterOverview(i == symbol.Parameters.Length - 1))
+            .Select((x, i) => x.GetParameterOverview(i, i == symbol.Parameters.Length - 1))
     ];
   }
 
-  public static ParameterOverview GetParameterOverview(this IParameterSymbol symbol, bool isLast = false) {
+  public static ParameterOverview GetParameterOverview(this IParameterSymbol symbol, int index = 0, bool isLast = false) {
     return new ParameterOverview(symbol.Type, symbol.Name) {
         DefaultValue = symbol.DeclaringSyntaxReferences
             .Select(x => x.GetSyntax())
@@ -57,6 +57,7 @@ public static class MethodExtensions {
             .Where(x => x is not null)
             .Select(x => x!.Value)
             .FirstOrDefault(),
+        Index = index,
         IsLast = isLast
     };
   }

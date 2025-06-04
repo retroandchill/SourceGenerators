@@ -58,4 +58,28 @@ public static class TypeExtensions {
         _ => false
     };
   }
+
+  public static TypedConstantKind GetTypedConstantKind(this ITypeSymbol type) {
+    if (type.IsSameType<Type>()) {
+      return TypedConstantKind.Type;
+    }
+
+    return type.TypeKind switch {
+        TypeKind.Enum => TypedConstantKind.Enum,
+        TypeKind.Array => TypedConstantKind.Array,
+        _ => type.SpecialType switch {
+            SpecialType.System_Boolean or SpecialType.System_Char or SpecialType.System_SByte or SpecialType.System_Byte or SpecialType.System_Int16 or SpecialType.System_UInt16 or SpecialType.System_Int32 or SpecialType.System_UInt32 or SpecialType.System_Int64 or SpecialType.System_UInt64
+                or SpecialType.System_Single or SpecialType.System_Double => TypedConstantKind.Primitive,
+            _ => TypedConstantKind.Error
+        }
+    };
+  }
+
+  public static T GetTypedValue<T>(this TypedConstant attributeValue) {
+    if (attributeValue.Value is null) {
+      throw new InvalidOperationException("Type is null");
+    }
+    
+    return (T) attributeValue.Value;
+  }
 }
