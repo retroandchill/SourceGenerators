@@ -1,14 +1,15 @@
 ﻿using System;
+using System.Linq;
 using Retro.SourceGeneratorUtilities.Core.Attributes;
 using Retro.SourceGeneratorUtilities.Core.Types;
 #nullable enable
 
 namespace {{Namespace}};
 
-public record {{AttributeName}}Info{{#HasPrimaryConstructor}}({{#PrimaryConstructor.Parameters}}{{Type}} {{Name}}{{#HasDefaultValue}} = {{DefaultValue}}{{/HasDefaultValue}}{{^IsLast}}, {{/IsLast}}{{/PrimaryConstructor.Parameters}}){{/HasPrimaryConstructor}}{{#HasParentClass}} : {{ParentAttribute}}Info{{#HasPrimaryConstructor}}({{#PrimaryConstructor.HasInitializer}}{{#PrimaryConstructor.Initializer.Arguments}}{{Expression}}{{^IsLast}}, {{/IsLast}}{{/PrimaryConstructor.Initializer.Arguments}}{{/PrimaryConstructor.HasInitializer}}){{/HasPrimaryConstructor}}{{/HasParentClass}} {
+public class {{AttributeName}}Info{{#HasPrimaryConstructor}}({{#PrimaryConstructor.Parameters}}{{Type}} {{Name}}{{#HasDefaultValue}} = {{DefaultValue}}{{/HasDefaultValue}}{{^IsLast}}, {{/IsLast}}{{/PrimaryConstructor.Parameters}}){{/HasPrimaryConstructor}}{{#HasParentClass}} : {{ParentAttribute}}Info{{#HasPrimaryConstructor}}({{#PrimaryConstructor.HasInitializer}}{{#PrimaryConstructor.Initializer.Arguments}}{{Expression}}{{^IsLast}}, {{/IsLast}}{{/PrimaryConstructor.Initializer.Arguments}}{{/PrimaryConstructor.HasInitializer}}){{/HasPrimaryConstructor}}{{/HasParentClass}} {
 
   {{#Properties}}
-  {{Accessibility}} {{Type}} {{Name}} { get;{{#HasSetter}} {{Setter.Type}};{{/HasSetter}} }{{#HasInitializer}} = {{Initializer}};{{/HasInitializer}}
+  {{Accessibility}} {{Type}} {{Name}} { get;{{#HasSetter}} init;{{/HasSetter}} }{{#HasInitializer}} = {{Initializer}};{{/HasInitializer}}
   {{/Properties}}
 
   {{#Constructors}}
@@ -32,7 +33,16 @@ public static class {{AttributeName}}InfoExtensions {
       {{#Parameters}}
       var arg{{Index}} = info.Data.ConstructorArguments[{{Index}}].GetTypedValue<{{Type}}>();
       {{/Parameters}}
-      return new {{../AttributeName}}Info({{#Parameters}}arg{{Index}}{{^IsLast}}, {{/IsLast}}{{/Parameters}});   
+    
+      var namedArguments = info.Data.NamedArguments.ToDictionary();
+    
+      return new {{../AttributeName}}Info({{#Parameters}}arg{{Index}}{{^IsLast}}, {{/IsLast}}{{/Parameters}}) {
+        {{#each ../Properties}}
+        {{#HasSetter}}
+          {{Name}} = namedArguments.TryGetValue("{{Name}}", out var value{{Name}}) ? value{{Name}}.GetTypedValue<{{Type}}>() : {{#if HasInitializer}}{{Initializer}}{{else}}default{{/if}},
+        {{/HasSetter}}
+        {{/each}}
+      };
     }
     
     {{/AllConstructors}}

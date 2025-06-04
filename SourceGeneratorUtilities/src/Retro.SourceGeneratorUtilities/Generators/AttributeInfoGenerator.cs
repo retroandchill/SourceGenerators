@@ -68,7 +68,7 @@ public class AttributeInfoGenerator : IIncrementalGenerator {
 
   private static void Execute(INamedTypeSymbol classSymbol, SourceProductionContext context) {
     var (primaryConstructor, constructors) = classSymbol.GetAllConstructors();
-    
+
     var templateParams = new {
         Namespace = classSymbol.ContainingNamespace.ToDisplayString(),
         AttributeName = classSymbol.Name,

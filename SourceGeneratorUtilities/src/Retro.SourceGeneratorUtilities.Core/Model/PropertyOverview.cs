@@ -6,9 +6,7 @@ public record PropertyOverview(ITypeSymbol Type, string Name) {
 
   public AccessibilityLevel Accessibility { get; init; } = AccessibilityLevel.Private;
   
-  public bool HasSetter => Setter.HasValue;
-  
-  public SetterOverview? Setter { get; init; }
+  public bool HasSetter { get; init; }
   
   public bool HasInitializer => Initializer is not null;
   

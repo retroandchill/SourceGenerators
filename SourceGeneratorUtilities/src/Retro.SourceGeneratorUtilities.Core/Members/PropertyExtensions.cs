@@ -16,7 +16,7 @@ public static class PropertyExtensions {
   public static PropertyOverview GetPropertyOverview(this IPropertySymbol propertySymbol) {
     return new PropertyOverview(propertySymbol.Type, propertySymbol.Name) {
         Accessibility = propertySymbol.DeclaredAccessibility.ToAccessibilityLevel(),
-        Setter = propertySymbol.GetSetterOverview(),
+        HasSetter = propertySymbol.SetMethod is not null,
         Initializer = propertySymbol.DeclaringSyntaxReferences
             .Select(x => x.GetSyntax())
             .OfType<PropertyDeclarationSyntax>()
@@ -24,12 +24,5 @@ public static class PropertyExtensions {
             .Select(x => x.Initializer!.Value)
             .FirstOrDefault()
     };
-  }
-  
-  public static SetterOverview? GetSetterOverview(this IPropertySymbol propertySymbol) {
-    var setter = propertySymbol.SetMethod;
-    if (setter is null) return null;
-    
-    return new SetterOverview(setter.IsInitOnly ? SetterType.Init : SetterType.Set);
   }
 }

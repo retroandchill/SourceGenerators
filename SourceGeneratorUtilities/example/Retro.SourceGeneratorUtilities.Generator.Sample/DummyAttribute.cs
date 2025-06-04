@@ -14,4 +14,5 @@ public class DummyAttribute(int value1, string? value2 = null) : Attribute {
   
   public int Value1 { get; } = value1;
   public string? Value2 { get; } = value2;
+  public double Value3 { get; init; } = 1.0;
 }
