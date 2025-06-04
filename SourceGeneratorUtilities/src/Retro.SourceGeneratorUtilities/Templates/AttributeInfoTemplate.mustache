@@ -1,19 +1,20 @@
 ﻿using System;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Retro.SourceGeneratorUtilities.Core.Attributes;
 using Retro.SourceGeneratorUtilities.Core.Types;
 #nullable enable
 
 namespace {{Namespace}};
 
-public class {{AttributeName}}Info{{#HasPrimaryConstructor}}({{#PrimaryConstructor.Parameters}}{{Type}} {{Name}}{{#HasDefaultValue}} = {{DefaultValue}}{{/HasDefaultValue}}{{^IsLast}}, {{/IsLast}}{{/PrimaryConstructor.Parameters}}){{/HasPrimaryConstructor}}{{#HasParentClass}} : {{ParentAttribute}}Info{{#HasPrimaryConstructor}}({{#PrimaryConstructor.HasInitializer}}{{#PrimaryConstructor.Initializer.Arguments}}{{Expression}}{{^IsLast}}, {{/IsLast}}{{/PrimaryConstructor.Initializer.Arguments}}{{/PrimaryConstructor.HasInitializer}}){{/HasPrimaryConstructor}}{{/HasParentClass}} {
+public class {{AttributeName}}Info{{#HasPrimaryConstructor}}(Compilation compilation{{#PrimaryConstructor.Parameters}}, {{Type}} {{Name}}{{#HasDefaultValue}} = {{DefaultValue}}{{/HasDefaultValue}}{{/PrimaryConstructor.Parameters}}){{/HasPrimaryConstructor}}{{#HasParentClass}} : {{ParentAttribute}}Info{{#HasPrimaryConstructor}}(compilation, {{#PrimaryConstructor.HasInitializer}}{{#PrimaryConstructor.Initializer.Arguments}}{{Expression}}{{^IsLast}}, {{/IsLast}}{{/PrimaryConstructor.Initializer.Arguments}}{{/PrimaryConstructor.HasInitializer}}){{/HasPrimaryConstructor}}{{/HasParentClass}} {
 
   {{#Properties}}
-  {{Accessibility}} {{Type}} {{Name}} { get;{{#HasSetter}} init;{{/HasSetter}} }{{#HasInitializer}} = {{Initializer}};{{/HasInitializer}}
+  {{Accessibility}} {{AttributeType}} {{Name}} { get;{{#HasSetter}} init;{{/HasSetter}} }{{#HasInitializer}} = {{AttributeInitializer}};{{/HasInitializer}}
   {{/Properties}}
 
   {{#Constructors}}
-  public {{../AttributeName}}Info({{#Parameters}}{{Type}} {{Name}}{{#HasDefaultValue}} = {{DefaultValue}}{{/HasDefaultValue}}{{^IsLast}}, {{/IsLast}}{{/Parameters}}){{#HasInitializer}} : {{Initializer.Type}}({{#Initializer.Arguments}}{{Expression}}{{^IsLast}}, {{/IsLast}}{{/Initializer.Arguments}}){{/HasInitializer}} {
+  public {{../AttributeName}}Info(Compilation compilation{{#Parameters}}, {{Type}} {{Name}}{{#HasDefaultValue}} = {{DefaultValue}}{{/HasDefaultValue}}{{/Parameters}}){{#HasInitializer}} : {{Initializer.Type}}(compilation{{#Initializer.Arguments}}, {{Expression}}{{/Initializer.Arguments}}){{/HasInitializer}} {
     {{#Assignments}}
     {{Left}} = {{Right}};
     {{/Assignments}}
@@ -25,21 +26,21 @@ public class {{AttributeName}}Info{{#HasPrimaryConstructor}}({{#PrimaryConstruct
 
 public static class {{AttributeName}}InfoExtensions {
 
-  public static {{AttributeName}}Info New(this AttributeInfo<{{AttributeName}}> info) {
+  public static {{AttributeName}}Info New(this AttributeInfo<{{AttributeName}}> info, Compilation compilation) {
     var args = info.Data.ConstructorArguments;
 
     {{#AllConstructors}}
     if (info.Data.HasMatchingConstructor({{#Parameters}}typeof({{NonNullableType}}){{^IsLast}}, {{/IsLast}}{{/Parameters}})) {
       {{#Parameters}}
-      var arg{{Index}} = info.Data.ConstructorArguments[{{Index}}].GetTypedValue<{{Type}}>();
+      var arg{{Index}} = info.Data.ConstructorArguments[{{Index}}].GetTypedValue<{{AttributeType}}>();
       {{/Parameters}}
     
       var namedArguments = info.Data.NamedArguments.ToDictionary();
     
-      return new {{../AttributeName}}Info({{#Parameters}}arg{{Index}}{{^IsLast}}, {{/IsLast}}{{/Parameters}}) {
+      return new {{../AttributeName}}Info(compilation{{#Parameters}}, arg{{Index}}{{/Parameters}}) {
         {{#each ../Properties}}
         {{#HasSetter}}
-          {{Name}} = namedArguments.TryGetValue("{{Name}}", out var value{{Name}}) ? value{{Name}}.GetTypedValue<{{Type}}>() : {{#if HasInitializer}}{{Initializer}}{{else}}default{{/if}},
+        {{Name}} = namedArguments.TryGetValue("{{Name}}", out var value{{Name}}) ? value{{Name}}.GetTypedValue<{{AttributeType}}>() : {{#if HasInitializer}}{{AttributeInitializer}}{{else}}default{{/if}},
         {{/HasSetter}}
         {{/each}}
       };

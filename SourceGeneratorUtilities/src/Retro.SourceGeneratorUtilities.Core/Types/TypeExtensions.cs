@@ -82,4 +82,22 @@ public static class TypeExtensions {
     
     return (T) attributeValue.Value;
   }
+
+  public static INamedTypeSymbol GetNamedType(this Compilation compilation, Type type) {
+    var metadataName = type.FullName;
+    if (metadataName is null) {
+      throw new InvalidOperationException("Type is null");
+    }
+    
+    var symbol = compilation.GetTypeByMetadataName(metadataName);
+    if (symbol is null) {
+      throw new InvalidOperationException("Type is null");
+    }
+    
+    return symbol;
+  }
+
+  public static INamedTypeSymbol GetNamedType<T>(this Compilation compilation) {
+    return compilation.GetNamedType(typeof(T));
+  }
 }

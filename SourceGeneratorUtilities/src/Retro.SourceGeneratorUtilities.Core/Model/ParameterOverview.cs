@@ -10,6 +10,8 @@ public record ParameterOverview(ITypeSymbol Type, string Name) {
 
   public ITypeSymbol NonNullableType => Type.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
   
+  public string AttributeType => Type.IsSameType<Type>() ? typeof(ITypeSymbol).FullName! : Type.ToDisplayString();
+  
   public bool IsEnum => Type.TypeKind == TypeKind.Enum;
 
   public bool IsReflectionType => Type.IsSameType<Type>();
