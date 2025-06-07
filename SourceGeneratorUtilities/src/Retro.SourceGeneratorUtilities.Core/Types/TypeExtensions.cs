@@ -13,6 +13,23 @@ namespace Retro.SourceGeneratorUtilities.Core.Types;
 
 public static class TypeExtensions {
   public static bool IsSameType(this ITypeSymbol type, Type targetType) {
+    if (targetType == typeof(void)) return type.SpecialType == SpecialType.System_Void;
+    if (targetType == typeof(bool)) return type.SpecialType == SpecialType.System_Boolean;
+    if (targetType == typeof(char)) return type.SpecialType == SpecialType.System_Char;
+    if (targetType == typeof(sbyte)) return type.SpecialType == SpecialType.System_SByte;
+    if (targetType == typeof(byte)) return type.SpecialType == SpecialType.System_Byte;
+    if (targetType == typeof(short)) return type.SpecialType == SpecialType.System_Int16;
+    if (targetType == typeof(ushort)) return type.SpecialType == SpecialType.System_UInt16;
+    if (targetType == typeof(int)) return type.SpecialType == SpecialType.System_Int32;
+    if (targetType == typeof(uint)) return type.SpecialType == SpecialType.System_UInt32;
+    if (targetType == typeof(long)) return type.SpecialType == SpecialType.System_Int64;
+    if (targetType == typeof(ulong)) return type.SpecialType == SpecialType.System_UInt64;
+    if (targetType == typeof(float)) return type.SpecialType == SpecialType.System_Single;
+    if (targetType == typeof(double)) return type.SpecialType == SpecialType.System_Double;
+    if (targetType == typeof(decimal)) return type.SpecialType == SpecialType.System_Decimal;
+    if (targetType == typeof(string)) return type.SpecialType == SpecialType.System_String;
+    if (targetType == typeof(object)) return type.SpecialType == SpecialType.System_Object;
+    
     return type.ToString() == targetType.FullName;
   }
 
@@ -83,11 +100,11 @@ public static class TypeExtensions {
   }
 
   public static T GetTypedValue<T>(this TypedConstant attributeValue) {
-    if (attributeValue.Value is null) {
+    if (attributeValue.Value is null && typeof(T).IsValueType) {
       throw new InvalidOperationException("Type is null");
     }
     
-    return (T) attributeValue.Value;
+    return (T) attributeValue.Value!;
   }
 
   public static INamedTypeSymbol GetNamedType(this Compilation compilation, Type type) {

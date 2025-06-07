@@ -20,6 +20,10 @@ public static class MethodExtensions {
     if (symbol.MethodKind != MethodKind.Constructor) {
       return null;
     }
+
+    if (symbol.IsImplicitlyDeclared) {
+      return new ConstructorOverview(symbol, []);
+    }
     
     var syntaxType = symbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
     return syntaxType switch {

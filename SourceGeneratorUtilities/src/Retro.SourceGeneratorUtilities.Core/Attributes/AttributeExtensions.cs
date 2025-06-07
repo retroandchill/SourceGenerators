@@ -12,6 +12,12 @@ public static class AttributeExtensions {
     return new AttributeInfo<T>(attributeData);
   }
 
+  public static IEnumerable<AttributeInfo<T>> GetInfo<T>(this IEnumerable<AttributeData> attributeData) where T : Attribute {
+    return attributeData
+        .Where(x => x.AttributeClass?.IsSameType<T>() ?? false)
+        .Select(x => x.GetInfo<T>());
+  }
+
   public static bool HasMatchingConstructor(this AttributeData attributeData, params Type[] constructorTypes) {
     if (attributeData.ConstructorArguments.Length != constructorTypes.Length) {
       return false;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Retro.SourceGeneratorUtilities.Core.Attributes;
 using Retro.SourceGeneratorUtilities.Core.Types;
@@ -36,6 +37,10 @@ public static class {{AttributeName}}InfoExtensions {
     
     {{/Constructors}}
     throw new InvalidOperationException("Cannot create {{AttributeName}}Info"); 
+  }
+
+  public static IEnumerable<{{AttributeName}}Info> New(this IEnumerable<AttributeInfo<{{AttributeName}}>> infos, Compilation compilation) {
+    return infos.Select(info => info.New(compilation));
   }
 
 }
