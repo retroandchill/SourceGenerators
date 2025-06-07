@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Retro.SourceGeneratorUtilities.Core.Model;
 
 namespace Retro.SourceGeneratorUtilities.Core.Types;
 
@@ -99,5 +103,27 @@ public static class TypeExtensions {
 
   public static INamedTypeSymbol GetNamedType<T>(this Compilation compilation) {
     return compilation.GetNamedType(typeof(T));
+  }
+
+  public static ImmutableDictionary<INamedTypeSymbol, TypePropertyInitializationOverview> GetPropertyInitializations(this IEnumerable<INamedTypeSymbol> types) {
+    var exploreSet = new Dictionary<INamedTypeSymbol, TypePropertyInitializationOverview>(NamedTypeSymbolEqualityComparer.Default);
+    foreach (var type in types) {
+      GetPropertyInitialization(type, exploreSet);
+    }
+
+    return exploreSet.ToImmutableDictionary(NamedTypeSymbolEqualityComparer.Default);
+  }
+
+  private static TypePropertyInitializationOverview GetPropertyInitialization(this INamedTypeSymbol type, Dictionary<INamedTypeSymbol, TypePropertyInitializationOverview> exploreSet) {
+    if (exploreSet.TryGetValue(type, out var overview)) {
+      return overview;
+    }
+    
+    var baseType = type.BaseType?.GetPropertyInitialization(exploreSet);
+    var newOverview = new TypePropertyInitializationOverview {
+        Base = baseType
+    };
+    exploreSet.Add(type, newOverview);
+    return newOverview;
   }
 }
