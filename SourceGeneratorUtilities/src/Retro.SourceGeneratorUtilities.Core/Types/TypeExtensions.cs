@@ -184,9 +184,7 @@ public static class TypeExtensions {
             return new {
                 Parameter = x,
                 Assignment = properConstructor.Assignments
-                    .Where(y => y.Right is IdentifierNameSyntax identifier && identifier.Identifier.ValueText == x.Name)
-                    .Select(y => (AssignmentOverview?)y)
-                    .FirstOrDefault()
+                    .FirstOrDefault(y => y.Right is IdentifierNameSyntax identifier && identifier.Identifier.ValueText == x.Name)
             };
 
           var assignment = properties
@@ -194,7 +192,7 @@ public static class TypeExtensions {
             
           return new {
               Parameter = x,
-              Assignment = assignment is not null ? (AssignmentOverview?) new AssignmentOverview(assignment.Symbol, assignment.Initializer!) : null
+              Assignment = assignment is not null ? new AssignmentOverview(assignment.Symbol, assignment.Initializer!) : null
           };
 
         })
@@ -204,7 +202,7 @@ public static class TypeExtensions {
         .Select(x => {
           var parameterOverride = parameterAssignmentOverrides!
               .Select((y, i) => {
-                if (!y.Assignment.HasValue || !y.Assignment.Value.Left.Equals(x.Left, SymbolEqualityComparer.Default)) {
+                if (y.Assignment is null || !y.Assignment.Left.Equals(x.Left, SymbolEqualityComparer.Default)) {
                   return null;
                 }
 

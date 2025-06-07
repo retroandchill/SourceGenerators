@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using HandlebarsDotNet;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Retro.SourceGeneratorUtilities.Core.Attributes;
 using Retro.SourceGeneratorUtilities.Core.Members;
@@ -24,8 +26,11 @@ public class AttributeInfoGenerator : IIncrementalGenerator {
         .SelectMany((m, _) => ExtractAttributeTypes(m))
         .Collect();
 
-    context.RegisterSourceOutput(attributeTypes, (spc, source) => {
-      Execute(source.Distinct(NamedTypeSymbolEqualityComparer.Default), spc);
+    var attributesWithCompilation = context.CompilationProvider
+        .Combine(attributeTypes);
+
+    context.RegisterSourceOutput(attributesWithCompilation, (spc, source) => {
+      Execute(source.Left, source.Right.Distinct(NamedTypeSymbolEqualityComparer.Default), spc);
     });
   }
 
@@ -34,7 +39,7 @@ public class AttributeInfoGenerator : IIncrementalGenerator {
     var semanticModel = context.SemanticModel;
 
     // Get the symbol for the generic name
-    var symbolInfo = semanticModel.GetSymbolInfo(genericName);
+    var symbolInfo = ModelExtensions.GetSymbolInfo(semanticModel, genericName);
     if (symbolInfo.Symbol is not IMethodSymbol { IsGenericMethod: true, TypeParameters.Length: 1 } method) {
       return null;
     }
@@ -64,7 +69,7 @@ public class AttributeInfoGenerator : IIncrementalGenerator {
     }
   }
 
-  private static void Execute(IEnumerable<INamedTypeSymbol> classSymbols, SourceProductionContext context) {
+  private static void Execute(Compilation compilation, IEnumerable<INamedTypeSymbol> classSymbols, SourceProductionContext context) {
     var allClassSymbols = classSymbols.GetPropertyInitializations();
     foreach (var initializer in allClassSymbols) {
       var classSymbol = initializer.Value;
@@ -73,8 +78,12 @@ public class AttributeInfoGenerator : IIncrementalGenerator {
           AttributeName = classSymbol.Name,
           HasParentClass = classSymbol.Base is not null && !classSymbol.Base.Symbol.IsSameType<Attribute>(),
           ParentAttribute = classSymbol.Base?.Symbol.ToDisplayString(),
-          classSymbol.Constructors,
-          classSymbol.Properties
+          Constructors = classSymbol.Constructors
+              .Select(x => ConvertToTypeMetadata(x, compilation))
+              .ToImmutableList(),
+          Properties = classSymbol.Properties
+              .Select(x => ConvertToTypeMetadata(x, compilation))
+              .ToImmutableList()
       };
 
       var handlebars = Handlebars.Create();
@@ -86,5 +95,42 @@ public class AttributeInfoGenerator : IIncrementalGenerator {
       var templateResult = template(templateParams);
       context.AddSource($"{classSymbol.Name}Info.g.cs", templateResult);
     }
+  }
+
+  private static ConstructorOverview ConvertToTypeMetadata(ConstructorOverview constructorOverview, Compilation compilation) {
+    return constructorOverview with {
+        Assignments = constructorOverview.Assignments
+            .Select(x => x.PropertyType.IsSameType<Type>() ? x with {
+                PropertyType = compilation.GetNamedType<ITypeSymbol>(),
+                Right = x.Right is TypeOfExpressionSyntax typeOfExpression ? ConvertToCompilationFetchExpression(typeOfExpression, compilation) : x.Right
+            } : x)
+            .ToImmutableList()
+    };
+  }
+  
+  private static PropertyOverview ConvertToTypeMetadata(PropertyOverview propertyOverview, Compilation compilation) {
+    return propertyOverview with {
+        Type = propertyOverview.Type.IsSameType<Type>() ? compilation.GetNamedType<ITypeSymbol>() : propertyOverview.Type,
+    };
+  }
+
+  private static ExpressionSyntax ConvertToCompilationFetchExpression(TypeOfExpressionSyntax expression, Compilation compilation) {
+    var typeArg = expression.Type;
+    
+
+    var typeSymbol = ModelExtensions.GetTypeInfo(compilation.GetSemanticModel(typeArg.SyntaxTree), typeArg).Type;
+    if (typeSymbol is null) {
+      throw new InvalidOperationException("Type is null");
+    }
+
+    return SyntaxFactory.InvocationExpression(
+        SyntaxFactory.MemberAccessExpression(
+            SyntaxKind.SimpleMemberAccessExpression,
+            SyntaxFactory.IdentifierName("compilation"),
+            SyntaxFactory.GenericName(
+                SyntaxFactory.IdentifierName(nameof(TypeExtensions.GetNamedType)).Identifier,
+                SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                                                   SyntaxFactory.IdentifierName(typeSymbol.ToDisplayString()))))));
+
   }
 }

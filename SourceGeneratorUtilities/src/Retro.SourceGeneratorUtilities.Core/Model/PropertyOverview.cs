@@ -6,9 +6,9 @@ namespace Retro.SourceGeneratorUtilities.Core.Model;
 
 public record PropertyOverview(IPropertySymbol Symbol) {
   
-  public ITypeSymbol Type => Symbol.Type;
+  public ITypeSymbol Type { get; init; } = Symbol.Type;
   
-  public string Name => Symbol.Name;
+  public string Name { get; init; } = Symbol.Name;
 
   public AccessibilityLevel Accessibility { get; init; } = AccessibilityLevel.Private;
   
