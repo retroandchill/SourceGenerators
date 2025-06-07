@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis;
 namespace Retro.SourceGeneratorUtilities.Core.Types;
 
 public class NamedTypeSymbolEqualityComparer : IEqualityComparer<INamedTypeSymbol> {
-  private IEqualityComparer<ISymbol> _equalityComparerImplementation;
+  private readonly IEqualityComparer<ISymbol> _equalityComparerImplementation;
 
   public static NamedTypeSymbolEqualityComparer Default { get; } = new(SymbolEqualityComparer.Default);
 

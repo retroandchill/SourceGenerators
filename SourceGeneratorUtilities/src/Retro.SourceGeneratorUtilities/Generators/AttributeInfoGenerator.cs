@@ -25,9 +25,7 @@ public class AttributeInfoGenerator : IIncrementalGenerator {
         .Collect();
 
     context.RegisterSourceOutput(attributeTypes, (spc, source) => {
-      foreach (var attributeType in source.Distinct(NamedTypeSymbolEqualityComparer.Default)) {
-        Execute(attributeType, spc);
-      }
+      Execute(source.Distinct(NamedTypeSymbolEqualityComparer.Default), spc);
     });
   }
 
@@ -66,30 +64,27 @@ public class AttributeInfoGenerator : IIncrementalGenerator {
     }
   }
 
-  private static void Execute(INamedTypeSymbol classSymbol, SourceProductionContext context) {
-    var (primaryConstructor, constructors) = classSymbol.GetAllConstructors();
+  private static void Execute(IEnumerable<INamedTypeSymbol> classSymbols, SourceProductionContext context) {
+    var allClassSymbols = classSymbols.GetPropertyInitializations();
+    foreach (var initializer in allClassSymbols) {
+      var classSymbol = initializer.Value;
+      var templateParams = new {
+          Namespace = classSymbol.Namespace.ToDisplayString(),
+          AttributeName = classSymbol.Name,
+          HasParentClass = classSymbol.Base is not null && !classSymbol.Base.Symbol.IsSameType<Attribute>(),
+          ParentAttribute = classSymbol.Base?.Symbol.ToDisplayString(),
+          classSymbol.Constructors,
+          classSymbol.Properties
+      };
 
-    var templateParams = new {
-        Namespace = classSymbol.ContainingNamespace.ToDisplayString(),
-        AttributeName = classSymbol.Name,
-        HasParentClass = classSymbol.BaseType is not null && !classSymbol.BaseType.IsSameType<Attribute>(),
-        ParentAttribute = classSymbol.BaseType?.ToDisplayString(),
-        HasPrimaryConstructor = primaryConstructor is not null,
-        PrimaryConstructor = primaryConstructor,
-        Constructors = constructors,
-        AllConstructors = constructors
-            .Concat(primaryConstructor is not null ? new [] { primaryConstructor } : Array.Empty<ConstructorOverview>()),
-        Properties = classSymbol.GetProperties()
-            .ToList()
-    };
+      var handlebars = Handlebars.Create();
+      handlebars.Configuration.TextEncoder = null;
+      handlebars.Configuration.FormatterProviders.Add(new EnumStringValueFormatter());
 
-    var handlebars = Handlebars.Create();
-    handlebars.Configuration.TextEncoder = null;
-    handlebars.Configuration.FormatterProviders.Add(new EnumStringValueFormatter());
+      var template = handlebars.Compile(SourceTemplates.AttributeInfoTemplate);
 
-    var template = handlebars.Compile(SourceTemplates.AttributeInfoTemplate);
-
-    var templateResult = template(templateParams);
-    context.AddSource($"{classSymbol.Name}Info.g.cs", templateResult);
+      var templateResult = template(templateParams);
+      context.AddSource($"{classSymbol.Name}Info.g.cs", templateResult);
+    }
   }
 }

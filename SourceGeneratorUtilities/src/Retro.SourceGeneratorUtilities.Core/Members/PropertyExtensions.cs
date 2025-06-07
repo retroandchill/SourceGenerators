@@ -14,7 +14,7 @@ public static class PropertyExtensions {
   }
   
   public static PropertyOverview GetPropertyOverview(this IPropertySymbol propertySymbol) {
-    return new PropertyOverview(propertySymbol.Type, propertySymbol.Name) {
+    return new PropertyOverview(propertySymbol) {
         Accessibility = propertySymbol.DeclaredAccessibility.ToAccessibilityLevel(),
         HasSetter = propertySymbol.SetMethod is not null,
         Initializer = propertySymbol.DeclaringSyntaxReferences

@@ -1,8 +1,10 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 
 namespace Retro.SourceGeneratorUtilities.Core.Model;
 
-public record ConstructorOverview(ImmutableArray<ParameterOverview> Parameters) {
+public record ConstructorOverview(IMethodSymbol Symbol, IReadOnlyList<ParameterOverview> Parameters) {
   
   public bool IsPrimaryConstructor { get; init; }
 
@@ -10,6 +12,6 @@ public record ConstructorOverview(ImmutableArray<ParameterOverview> Parameters) 
   
   public ConstructorInitializerOverview? Initializer { get; init; }
 
-  public ImmutableArray<AssignmentOverview> Assignments { get; init; } = [];
+  public IReadOnlyList<AssignmentOverview> Assignments { get; init; } = [];
 
 }

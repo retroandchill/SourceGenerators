@@ -4,6 +4,9 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Retro.SourceGeneratorUtilities.Core.Members;
 using Retro.SourceGeneratorUtilities.Core.Model;
 
 namespace Retro.SourceGeneratorUtilities.Core.Types;
@@ -105,8 +108,8 @@ public static class TypeExtensions {
     return compilation.GetNamedType(typeof(T));
   }
 
-  public static ImmutableDictionary<INamedTypeSymbol, TypePropertyInitializationOverview> GetPropertyInitializations(this IEnumerable<INamedTypeSymbol> types) {
-    var exploreSet = new Dictionary<INamedTypeSymbol, TypePropertyInitializationOverview>(NamedTypeSymbolEqualityComparer.Default);
+  public static ImmutableDictionary<INamedTypeSymbol, DataTypeOverview> GetPropertyInitializations(this IEnumerable<INamedTypeSymbol> types) {
+    var exploreSet = new Dictionary<INamedTypeSymbol, DataTypeOverview>(NamedTypeSymbolEqualityComparer.Default);
     foreach (var type in types) {
       GetPropertyInitialization(type, exploreSet);
     }
@@ -114,16 +117,136 @@ public static class TypeExtensions {
     return exploreSet.ToImmutableDictionary(NamedTypeSymbolEqualityComparer.Default);
   }
 
-  private static TypePropertyInitializationOverview GetPropertyInitialization(this INamedTypeSymbol type, Dictionary<INamedTypeSymbol, TypePropertyInitializationOverview> exploreSet) {
+  private static DataTypeOverview? GetPropertyInitialization(this INamedTypeSymbol type, Dictionary<INamedTypeSymbol, DataTypeOverview> exploreSet) {
+    if (type.SpecialType != SpecialType.None || type.IsSameType<Attribute>()) {
+      return null;
+    }
+    
     if (exploreSet.TryGetValue(type, out var overview)) {
       return overview;
     }
     
     var baseType = type.BaseType?.GetPropertyInitialization(exploreSet);
-    var newOverview = new TypePropertyInitializationOverview {
-        Base = baseType
+
+    var publicProperties = type.GetProperties()
+        .Where(x => x.Accessibility == AccessibilityLevel.Public)
+        .ToImmutableList();
+
+    var constructors = type.GetAllConstructors(baseType, publicProperties)
+        .ToImmutableList();
+    
+    var newOverview = new DataTypeOverview {
+        Symbol = type,
+        Base = baseType,
+        Constructors = constructors,
+        Properties = publicProperties
     };
     exploreSet.Add(type, newOverview);
     return newOverview;
+  }
+
+  private static IEnumerable<ConstructorOverview> GetAllConstructors(this INamedTypeSymbol type, DataTypeOverview? baseType, ImmutableList<PropertyOverview> properties) {
+    var constructorsList = type.GetAllConstructors().ToImmutableList();
+
+    var allConstructors = constructorsList.ToList();
+    var exploreSet = new Dictionary<IMethodSymbol, ConstructorOverview>(MethodSymbolEqualityComparer.Default);
+    if (baseType is not null) {
+      foreach (var constructor in baseType.Constructors) {
+        exploreSet.Add(constructor.Symbol, constructor);
+        allConstructors.Add(constructor);
+      }
+    }
+    
+    var propertiesList = properties.ToList();
+    var currentBase = baseType;
+    while (currentBase is not null) {
+      propertiesList.AddRange(currentBase.Properties);
+      currentBase = currentBase.Base;
+    }
+
+    return constructorsList.Select(constructor => constructor.GetConstructorOverview(allConstructors, exploreSet, propertiesList));
+  }
+
+  private static ConstructorOverview GetConstructorOverview(this ConstructorOverview symbol, IReadOnlyList<ConstructorOverview> allConstructors,
+                                                            Dictionary<IMethodSymbol, ConstructorOverview> exploreSet, 
+                                                            IReadOnlyList<PropertyOverview> properties) {
+    if (exploreSet.TryGetValue(symbol.Symbol, out var thisConstructor)) {
+      return thisConstructor;
+    }
+    
+    var calledConstructor = symbol.Initializer is not null ? allConstructors.FirstOrDefault(x => x.Symbol.Equals(symbol.Initializer.Symbol, SymbolEqualityComparer.Default)) : null;
+    
+    var properConstructor = calledConstructor?.GetConstructorOverview(allConstructors, exploreSet, properties);
+
+    var parameterAssignmentOverrides = properConstructor?.Parameters
+        .Select(x => {
+          if (!properConstructor.IsPrimaryConstructor)
+            return new {
+                Parameter = x,
+                Assignment = properConstructor.Assignments
+                    .Where(y => y.Right is IdentifierNameSyntax identifier && identifier.Identifier.ValueText == x.Name)
+                    .Select(y => (AssignmentOverview?)y)
+                    .FirstOrDefault()
+            };
+
+          var assignment = properties
+              .FirstOrDefault(y => y.Initializer is IdentifierNameSyntax identifier && identifier.Identifier.ValueText == x.Name);
+            
+          return new {
+              Parameter = x,
+              Assignment = assignment is not null ? (AssignmentOverview?) new AssignmentOverview(assignment.Symbol, assignment.Initializer!) : null
+          };
+
+        })
+        .ToImmutableList();
+
+    var constructorAssignments = properConstructor?.Assignments
+        .Select(x => {
+          var parameterOverride = parameterAssignmentOverrides!
+              .Select((y, i) => {
+                if (!y.Assignment.HasValue || !y.Assignment.Value.Left.Equals(x.Left, SymbolEqualityComparer.Default)) {
+                  return null;
+                }
+
+                var arguments = symbol.Initializer!.Arguments;
+                return i >= arguments.Count ? y.Parameter.DefaultValue : arguments[i].Expression.Expression;
+
+              })
+              .FirstOrDefault(y => y is not null);
+
+          if (parameterOverride is null) {
+            return x;
+          }
+
+          return x with { Right = parameterOverride };
+        })
+        .ToImmutableList() ?? ImmutableList<AssignmentOverview>.Empty;
+    
+    var assignmentList = new List<AssignmentOverview>();
+    assignmentList.AddRange(constructorAssignments);
+    foreach (var assignment in symbol.Assignments) {
+      var existingAssignment = assignmentList.FindIndex(x => x.Left.Equals(assignment.Left, SymbolEqualityComparer.Default));
+      if (existingAssignment >= 0) {
+        assignmentList[existingAssignment] = assignment;
+      }
+      else {
+        assignmentList.Add(assignment);
+      }
+    }
+    
+    var newSymbol = symbol with {
+        Assignments = assignmentList
+            .ConcatPropertyAssignments(properties)
+            .ToImmutableList()
+    };
+    exploreSet.Add(symbol.Symbol, newSymbol);
+    return newSymbol;
+  }
+  
+  private static IEnumerable<AssignmentOverview> ConcatPropertyAssignments(this IReadOnlyList<AssignmentOverview> assignments, IEnumerable<PropertyOverview> properties) {
+    return assignments.Concat(properties
+                                  .Where(y => !assignments
+                                             .Any(z => z.Left.Equals(y.Symbol, SymbolEqualityComparer.Default)))
+                                  .Select(y => new AssignmentOverview(y.Symbol, y.Initializer ?? SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression))));
   }
 }

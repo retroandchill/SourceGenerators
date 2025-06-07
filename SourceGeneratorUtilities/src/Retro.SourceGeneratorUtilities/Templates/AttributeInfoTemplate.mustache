@@ -7,21 +7,11 @@ using Retro.SourceGeneratorUtilities.Core.Types;
 
 namespace {{Namespace}};
 
-public class {{AttributeName}}Info{{#HasPrimaryConstructor}}(Compilation compilation{{#PrimaryConstructor.Parameters}}, {{Type}} {{Name}}{{#HasDefaultValue}} = {{DefaultValue}}{{/HasDefaultValue}}{{/PrimaryConstructor.Parameters}}){{/HasPrimaryConstructor}}{{#HasParentClass}} : {{ParentAttribute}}Info{{#HasPrimaryConstructor}}(compilation, {{#PrimaryConstructor.HasInitializer}}{{#PrimaryConstructor.Initializer.Arguments}}{{Expression}}{{^IsLast}}, {{/IsLast}}{{/PrimaryConstructor.Initializer.Arguments}}{{/PrimaryConstructor.HasInitializer}}){{/HasPrimaryConstructor}}{{/HasParentClass}} {
+public record {{AttributeName}}Info{{#HasParentClass}} : {{ParentAttribute}}Info{{/HasParentClass}} {
 
   {{#Properties}}
-  {{Accessibility}} {{AttributeType}} {{Name}} { get;{{#HasSetter}} init;{{/HasSetter}} }{{#HasInitializer}} = {{AttributeInitializer}};{{/HasInitializer}}
+  public required {{Type}} {{Name}} { get; init; }
   {{/Properties}}
-
-  {{#Constructors}}
-  public {{../AttributeName}}Info(Compilation compilation{{#Parameters}}, {{Type}} {{Name}}{{#HasDefaultValue}} = {{DefaultValue}}{{/HasDefaultValue}}{{/Parameters}}){{#HasInitializer}} : {{Initializer.Type}}(compilation{{#Initializer.Arguments}}, {{Expression}}{{/Initializer.Arguments}}){{/HasInitializer}} {
-    {{#Assignments}}
-    {{Left}} = {{Right}};
-    {{/Assignments}}
-  }
-  
-  {{/Constructors}}
-
 }
 
 public static class {{AttributeName}}InfoExtensions {
@@ -29,24 +19,22 @@ public static class {{AttributeName}}InfoExtensions {
   public static {{AttributeName}}Info New(this AttributeInfo<{{AttributeName}}> info, Compilation compilation) {
     var args = info.Data.ConstructorArguments;
 
-    {{#AllConstructors}}
+    {{#Constructors}}
     if (info.Data.HasMatchingConstructor({{#Parameters}}typeof({{NonNullableType}}){{^IsLast}}, {{/IsLast}}{{/Parameters}})) {
       {{#Parameters}}
-      var arg{{Index}} = info.Data.ConstructorArguments[{{Index}}].GetTypedValue<{{AttributeType}}>();
+      var {{Name}} = info.Data.ConstructorArguments[{{Index}}].GetTypedValue<{{AttributeType}}>();
       {{/Parameters}}
     
       var namedArguments = info.Data.NamedArguments.ToDictionary();
     
-      return new {{../AttributeName}}Info(compilation{{#Parameters}}, arg{{Index}}{{/Parameters}}) {
-        {{#each ../Properties}}
-        {{#HasSetter}}
-        {{Name}} = namedArguments.TryGetValue("{{Name}}", out var value{{Name}}) ? value{{Name}}.GetTypedValue<{{AttributeType}}>() : {{#if HasInitializer}}{{AttributeInitializer}}{{else}}default{{/if}},
-        {{/HasSetter}}
-        {{/each}}
+      return new {{../AttributeName}}Info {
+        {{#Assignments}}
+        {{PropertyName}} = {{#HasSetter}}namedArguments.TryGetValue("{{PropertyName}}", out var value{{PropertyName}}) ? value{{PropertyName}}.GetTypedValue<{{PropertyType}}>() : {{/HasSetter}}{{Right}},
+        {{/Assignments}}
       };
     }
     
-    {{/AllConstructors}}
+    {{/Constructors}}
     throw new InvalidOperationException("Cannot create {{AttributeName}}Info"); 
   }
 

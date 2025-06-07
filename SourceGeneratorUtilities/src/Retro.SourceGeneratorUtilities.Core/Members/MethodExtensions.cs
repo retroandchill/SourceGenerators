@@ -10,22 +10,10 @@ namespace Retro.SourceGeneratorUtilities.Core.Members;
 
 public static class MethodExtensions {
 
-  public static ConstructorsOverview GetAllConstructors(this INamedTypeSymbol type) {
-    var arrayBuilder = ImmutableArray.CreateBuilder<ConstructorOverview>();
-    ConstructorOverview? primaryConstructor = null;
-    foreach (var method in type.Constructors
-                 .Select(x => x.GetConstructorOverview())) {
-      if (method is null) continue;
-
-      if (method.IsPrimaryConstructor) {
-        primaryConstructor = method;
-        continue;
-      }
-      
-      arrayBuilder.Add(method);
-    }
-    
-    return new ConstructorsOverview(primaryConstructor, arrayBuilder.ToImmutable());
+  public static IEnumerable<ConstructorOverview> GetAllConstructors(this INamedTypeSymbol type) {
+    return type.Constructors
+        .Select(x => x.GetConstructorOverview())
+        .Where(x => x is not null)!;
   }
 
   public static ConstructorOverview? GetConstructorOverview(this IMethodSymbol symbol) {
@@ -63,98 +51,66 @@ public static class MethodExtensions {
   }
 
   private static ConstructorOverview GetConstructorOverview(this IMethodSymbol symbol, TypeDeclarationSyntax typeDeclaration) {
-    return new ConstructorOverview(symbol.GetParameters()) {
+    var syntaxTree = typeDeclaration.SyntaxTree;
+    var compilation = ((ISourceAssemblySymbol)symbol.ContainingAssembly).Compilation;
+    var semanticModel = compilation.GetSemanticModel(syntaxTree);
+
+    var baseType = typeDeclaration.BaseList?.Types
+        .OfType<PrimaryConstructorBaseTypeSyntax>()
+        .FirstOrDefault();
+
+    // Get the IMethodSymbol for the base constructor being called
+    var constructorSymbol = baseType != null 
+        ? semanticModel.GetSymbolInfo(baseType).Symbol as IMethodSymbol 
+        : null;
+
+    return new ConstructorOverview(symbol, symbol.GetParameters()) {
         IsPrimaryConstructor = true,
-        Initializer = typeDeclaration.BaseList?.Types
-            .OfType<PrimaryConstructorBaseTypeSyntax>()
-            .Select(x => new ConstructorInitializerOverview(InitializerType.Base, [
-                ..x.ArgumentList.Arguments
+        Initializer = baseType != null && constructorSymbol is not null
+            ? new ConstructorInitializerOverview(constructorSymbol, InitializerType.Base, baseType.ArgumentList.Arguments
                     .Select((y, i) => new ArgumentOverview(y) {
-                        IsLast = i == x.ArgumentList.Arguments.Count - 1
+                        IsLast = i == baseType.ArgumentList.Arguments.Count - 1
                     })
-            ]))
-            .FirstOrDefault()
+                                                     .ToImmutableList())
+            : null
     };
   }
 
-  private static ConstructorOverview? GetConstructorOverview(this IMethodSymbol symbol, ConstructorDeclarationSyntax methodDeclaration) {
+  private static ConstructorOverview GetConstructorOverview(this IMethodSymbol symbol, ConstructorDeclarationSyntax methodDeclaration) {
     var initializer = methodDeclaration.Initializer;
     var initializerType = initializer?.ThisOrBaseKeyword.ToString() == "base"
         ? InitializerType.Base
         : InitializerType.This;
     
-    return new ConstructorOverview(symbol.GetParameters()) {
-        Initializer = initializer is not null ? new ConstructorInitializerOverview(initializerType, [
-            ..initializer.ArgumentList.Arguments
-                .Select((x, i) => new ArgumentOverview(x) {
-                    IsLast = i == initializer.ArgumentList.Arguments.Count - 1
-                })
-        ]) : null,
-        Assignments = [
-            ..methodDeclaration.DescendantNodes()
-                .OfType<AssignmentExpressionSyntax>()
-                .Where(assignment => assignment.Left is MemberAccessExpressionSyntax)
-                .Select(x => new AssignmentOverview(x.Left, x.Right))
-        ]
+    var syntaxTree = methodDeclaration.SyntaxTree;
+    var compilation = ((ISourceAssemblySymbol)symbol.ContainingAssembly).Compilation;
+    var semanticModel = compilation.GetSemanticModel(syntaxTree);
+
+    var constructorSymbol = initializer != null 
+        ? semanticModel.GetSymbolInfo(initializer).Symbol as IMethodSymbol 
+        : null;
+
+    
+    
+    return new ConstructorOverview(symbol, symbol.GetParameters()) {
+        Initializer = initializer is not null && constructorSymbol is not null ? new ConstructorInitializerOverview(constructorSymbol, initializerType, initializer.ArgumentList.Arguments
+                                                                                                                        .Select((x, i) => new ArgumentOverview(x) {
+                                                                                                                            IsLast = i == initializer.ArgumentList.Arguments.Count - 1
+                                                                                                                        })
+                                                                                                                        .ToImmutableList()) : null,
+        Assignments = methodDeclaration.DescendantNodes()
+            .OfType<AssignmentExpressionSyntax>()
+            .Where(assignment => assignment.Left is MemberAccessExpressionSyntax)
+            .Select(x => {
+                  var memberAccess = (MemberAccessExpressionSyntax)x.Left;
+                  var propertySymbol = semanticModel.GetSymbolInfo(memberAccess).Symbol as IPropertySymbol;
+                  return new {Left = propertySymbol, x.Right};
+                }
+            )
+            .Where(x => x.Left is not null)
+            .Select(x => new AssignmentOverview(x.Left!, x.Right))
+            .ToImmutableList()
     };
   }
-  
-  public static IEnumerable<AssignmentExpressionSyntax> GetPropertyAssignments(this IMethodSymbol method) {
-    var syntaxType = method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
-    if (syntaxType is ClassDeclarationSyntax { ParameterList: not null } classDeclaration) {
-      // Handle primary constructor assignments
-      var propertyAssignments = classDeclaration.Members
-          .OfType<PropertyDeclarationSyntax>()
-          .Where(p => p.Initializer != null)
-          .Select(p => SyntaxFactory.AssignmentExpression(
-                      SyntaxKind.SimpleAssignmentExpression,
-                      SyntaxFactory.MemberAccessExpression(
-                          SyntaxKind.SimpleMemberAccessExpression,
-                          SyntaxFactory.ThisExpression(),
-                          SyntaxFactory.IdentifierName(p.Identifier.Text)),
-                      p.Initializer.Value));
 
-      foreach (var assignment in propertyAssignments) {
-        yield return assignment;
-      }
-    }
-
-    // Handle regular constructor or method body assignments
-    if (syntaxType is not MethodDeclarationSyntax methodSyntax) yield break;
-    var bodyAssignments = methodSyntax.DescendantNodes()
-        .OfType<AssignmentExpressionSyntax>()
-        .Where(assignment => assignment.Left is MemberAccessExpressionSyntax);
-
-    foreach (var assignment in bodyAssignments) {
-      yield return assignment;
-    }
-  }
-
-  public static  ConstructorInitializerOverview? GetConstructorInitializer(this IMethodSymbol constructor) {
-    var syntax = constructor.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
-
-    if (syntax is ClassDeclarationSyntax classDeclarationSyntax) {
-      var baseInvocation = classDeclarationSyntax.BaseList?.Types
-          .OfType<PrimaryConstructorBaseTypeSyntax>()
-          .FirstOrDefault();
-      
-      return new ConstructorInitializerOverview(InitializerType.Base, baseInvocation?.ArgumentList.Arguments
-                                                    .Select(x => new ArgumentOverview(x))
-                                                    .ToImmutableArray() ?? []);
-    }
-    
-    if (syntax is not ConstructorDeclarationSyntax constructorSyntax) {
-      return null;
-    }
-
-    var initializer = constructorSyntax.Initializer;
-    var initializerType = initializer?.ThisOrBaseKeyword.ToString() == "base"
-        ? InitializerType.Base
-        : InitializerType.This;
-    return new ConstructorInitializerOverview(initializerType, initializer?.ArgumentList.Arguments
-                                                  .Select((x, i) => new ArgumentOverview(x) {
-                                                      IsLast = i == initializer.ArgumentList.Arguments.Count - 1
-                                                  })
-                                                  .ToImmutableArray() ?? []);
-  }
 }
