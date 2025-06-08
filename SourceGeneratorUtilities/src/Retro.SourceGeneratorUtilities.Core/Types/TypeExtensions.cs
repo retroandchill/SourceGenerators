@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.FindSymbols;
 
 namespace Retro.SourceGeneratorUtilities.Core.Types;
 
@@ -17,6 +21,10 @@ public static class TypeExtensions {
   /// True if the current type symbol represents the same type as the specified target type; otherwise, false.
   /// </returns>
   public static bool IsSameType(this ITypeSymbol type, Type targetType) {
+    if (type is ITypeParameterSymbol && targetType.IsGenericParameter) {
+      return true;
+    }
+    
     if (targetType == typeof(void)) return type.SpecialType == SpecialType.System_Void;
     if (targetType == typeof(bool)) return type.SpecialType == SpecialType.System_Boolean;
     if (targetType == typeof(char)) return type.SpecialType == SpecialType.System_Char;
@@ -33,8 +41,36 @@ public static class TypeExtensions {
     if (targetType == typeof(decimal)) return type.SpecialType == SpecialType.System_Decimal;
     if (targetType == typeof(string)) return type.SpecialType == SpecialType.System_String;
     if (targetType == typeof(object)) return type.SpecialType == SpecialType.System_Object;
+
+    // Handle generic types
+    if (type is not INamedTypeSymbol namedType || !targetType.IsGenericType) return type.ToString() == targetType.FullName;
     
-    return type.ToString() == targetType.FullName;
+    if (!namedType.IsGenericType)
+      return false;
+
+    // Check if the generic type definitions match
+    if ($"{namedType.ContainingSymbol}.{namedType.ConstructedFrom.MetadataName}" != targetType.GetGenericTypeDefinition().FullName) {
+      return false;
+    }
+
+    // Check if the number of type arguments matches
+    var genericArguments = targetType.GetGenericArguments();
+    if (namedType.TypeArguments.Length != genericArguments.Length) {
+      return false;
+    }
+
+    // Compare each type argument
+    for (var i = 0; i < namedType.TypeArguments.Length; i++) {
+      var typeArg = namedType.TypeArguments[i];
+      var targetTypeArg = genericArguments[i];
+      if (!typeArg.IsSameType(targetTypeArg)) {
+        return false;
+      }
+    }
+
+    return true;
+
+
   }
 
   /// <summary>
@@ -110,8 +146,8 @@ public static class TypeExtensions {
     if (attributeValue.Value is null && typeof(T).IsValueType) {
       throw new InvalidOperationException("Type is null");
     }
-    
-    return (T) attributeValue.Value!;
+
+    return (T)attributeValue.Value!;
   }
 
   /// <summary>
@@ -128,12 +164,12 @@ public static class TypeExtensions {
     if (metadataName is null) {
       throw new InvalidOperationException("Type is null");
     }
-    
+
     var symbol = compilation.GetTypeByMetadataName(metadataName);
     if (symbol is null) {
       throw new InvalidOperationException("Type is null");
     }
-    
+
     return symbol;
   }
 

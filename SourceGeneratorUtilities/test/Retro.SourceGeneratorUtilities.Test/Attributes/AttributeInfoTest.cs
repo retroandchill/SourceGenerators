@@ -1,6 +1,11 @@
 ﻿using System.Collections.Immutable;
 using Retro.SourceGeneratorUtilities.Core.Attributes;
+using Retro.SourceGeneratorUtilities.Core.Test.Attributes;
 using Retro.SourceGeneratorUtilities.Core.Test.Utils;
+
+[assembly: AttributeInfoType<PropertyOnlyAttribute>]
+[assembly: AttributeInfoType<MultipleAllowedAttribute>]
+
 namespace Retro.SourceGeneratorUtilities.Core.Test.Attributes;
 
 [AttributeUsage(AttributeTargets.Class)]

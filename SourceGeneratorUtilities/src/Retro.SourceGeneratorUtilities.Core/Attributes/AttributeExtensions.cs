@@ -69,5 +69,45 @@ public static class AttributeExtensions {
 
     return true;
   }
+
+  public static IEnumerable<INamedTypeSymbol> GetAttributeInfoTypes(this IAssemblySymbol assembly) {
+    return assembly.GetAttributes()
+        .Where(a => a.AttributeClass?.IsOfType<AttributeInfoTypeAttribute>() ?? false)
+        .Select(GetAttributeInfoType)
+        .Where(x => x is not null)
+        .SelectMany(ExtractAttributeTypes)
+        .Distinct(NamedTypeSymbolEqualityComparer.Default);
+  }
+
+  private static INamedTypeSymbol? GetAttributeInfoType(this AttributeData extractedAttribute) {
+    if (extractedAttribute?.AttributeClass is null) {
+      return null;
+    }
+
+    var attributeClass = extractedAttribute.AttributeClass;
+    if (attributeClass.IsGenericType && attributeClass.ConstructedFrom.IsSameType(typeof(AttributeInfoTypeAttribute<>))) {
+      return attributeClass.TypeArguments[0] as INamedTypeSymbol;
+    }
+    
+    if (attributeClass.IsSameType<AttributeInfoTypeAttribute>()) {
+      return extractedAttribute.ConstructorArguments[0].Value as INamedTypeSymbol;
+    }
+
+    throw new InvalidOperationException("Invalid attribute type");
+  }
   
+  private static IEnumerable<INamedTypeSymbol> ExtractAttributeTypes(INamedTypeSymbol? namedType) {
+    if (namedType is null) {
+      yield break;
+    }
+
+    while (!namedType.IsSameType<Attribute>()) {
+      yield return namedType;
+      if (namedType.BaseType is null) {
+        break;
+      }
+
+      namedType = namedType.BaseType;
+    }
+  }
 }

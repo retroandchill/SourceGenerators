@@ -23,7 +23,7 @@ public static class {{AttributeName}}InfoExtensions {
     {{#Constructors}}
     if (info.Data.HasMatchingConstructor({{#Parameters}}typeof({{NonNullableType}}){{^IsLast}}, {{/IsLast}}{{/Parameters}})) {
       {{#Parameters}}
-      var {{Name}} = info.Data.ConstructorArguments[{{Index}}].GetTypedValue<{{AttributeType}}>();
+      var {{Name}} = info.Data.ConstructorArguments[{{Index}}].GetTypedValue<{{Type}}>();
       {{/Parameters}}
     
       var namedArguments = info.Data.NamedArguments.ToDictionary();
