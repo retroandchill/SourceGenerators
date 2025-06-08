@@ -25,6 +25,16 @@ public static class {{AttributeName}}InfoExtensions {
   public static bool TryGet{{AttributeName}}Info(this AttributeData data, Compilation compilation, [NotNullWhen(true)] out {{AttributeName}}Info? info) {
     var args = data.ConstructorArguments;
 
+    if (data.AttributeClass is null) {
+      info = null;
+      return false;
+    }
+
+    if (!data.AttributeClass.IsSameType(typeof({{AttributeName}}))) {
+      info = null;
+      return false;
+    }
+
     {{#Constructors}}
     if (data.HasMatchingConstructor({{#Parameters}}typeof({{NonNullableType}}){{^IsLast}}, {{/IsLast}}{{/Parameters}})) {
       {{#Parameters}}
