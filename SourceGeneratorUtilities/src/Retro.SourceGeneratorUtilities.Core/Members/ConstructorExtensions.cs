@@ -9,10 +9,9 @@ using Retro.SourceGeneratorUtilities.Core.Model;
 namespace Retro.SourceGeneratorUtilities.Core.Members;
 
 /// <summary>
-/// Provides extension methods for extracting and processing metadata related to methods, constructors,
-/// and their parameters from symbols in the Roslyn compilation model.
+/// Provides extension methods for retrieving and processing constructor information.
 /// </summary>
-public static class MethodExtensions {
+public static class ConstructorExtensions {
 
   /// <summary>
   /// Retrieves all constructors of the specified named type symbol as a collection of <see cref="ConstructorOverview"/> objects.
