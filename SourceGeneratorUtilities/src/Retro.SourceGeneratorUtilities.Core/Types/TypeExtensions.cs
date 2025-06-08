@@ -63,6 +63,11 @@ public static class TypeExtensions {
     for (var i = 0; i < namedType.TypeArguments.Length; i++) {
       var typeArg = namedType.TypeArguments[i];
       var targetTypeArg = genericArguments[i];
+
+      if (typeArg is ITypeParameterSymbol) {
+        continue;
+      }
+      
       if (!typeArg.IsSameType(targetTypeArg)) {
         return false;
       }
@@ -94,17 +99,21 @@ public static class TypeExtensions {
   /// True if the current type symbol is of the specified type; otherwise, false.
   /// </returns>
   public static bool IsOfType<T>(this ITypeSymbol type) {
-    if (type.IsSameType<T>()) {
+    return type.IsOfType(typeof(T));
+  }
+  
+  public static bool IsOfType(this ITypeSymbol type, Type otherType) {
+    if (type.IsSameType(otherType)) {
       return true;
     }
 
-    if (typeof(T).IsClass && type is { TypeKind: TypeKind.Class, BaseType: not null }) {
-      return type.BaseType.IsOfType<T>();
+    if (otherType.IsClass && type is { TypeKind: TypeKind.Class, BaseType: not null }) {
+      return type.BaseType.IsOfType(otherType);
     }
 
-    if (typeof(T).IsInterface && type.TypeKind is TypeKind.Interface or TypeKind.Class) {
+    if (otherType.IsInterface && type.TypeKind is TypeKind.Interface or TypeKind.Class) {
       return type.Interfaces
-          .Any(i => i.IsOfType<T>());
+          .Any(i => i.IsOfType(otherType));
     }
 
     return false;
@@ -184,5 +193,4 @@ public static class TypeExtensions {
   public static INamedTypeSymbol GetNamedType<T>(this Compilation compilation) {
     return compilation.GetNamedType(typeof(T));
   }
-
 }

@@ -30,6 +30,18 @@ public static class {{AttributeName}}InfoExtensions {
       return false;
     }
 
+    {{#ChildClasses}}
+    if (!data.AttributeClass.IsOfType(typeof({{FullName}}))) {
+      if ({{FullName}}InfoExtensions.TryGet{{Name}}Info(data, compilation, out var childInfo)) {
+        info = childInfo;
+        return true;
+      } else {
+        info = null;
+        return false;
+      }
+    }
+    {{/ChildClasses}}
+
     if (!data.AttributeClass.IsSameType(typeof({{AttributeName}}))) {
       info = null;
       return false;

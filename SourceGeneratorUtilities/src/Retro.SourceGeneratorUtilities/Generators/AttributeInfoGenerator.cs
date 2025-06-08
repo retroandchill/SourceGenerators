@@ -30,6 +30,14 @@ public class AttributeInfoGenerator : IIncrementalGenerator {
           AttributeName = classSymbol.Name,
           HasParentClass = classSymbol.Base is not null && !classSymbol.Base.Symbol.IsSameType<Attribute>(),
           ParentAttribute = classSymbol.Base?.Symbol.ToDisplayString(),
+          ChildClasses = allClassSymbols.Keys
+              .Where(x => !x.Equals(classSymbol.Symbol, SymbolEqualityComparer.Default))
+              .Where(x => x.IsOfType(classSymbol.Symbol))
+              .Select(x => new {
+                 x.Name,
+                 FullName = x.ToDisplayString()
+              })
+              .ToImmutableList(),
           Constructors = classSymbol.Constructors
               .Select(x => ConvertToTypeMetadata(x, compilation))
               .ToImmutableList(),
@@ -54,7 +62,7 @@ public class AttributeInfoGenerator : IIncrementalGenerator {
         Assignments = constructorOverview.Assignments
             .Select(x => x.PropertyType.IsSameType<Type>() ? x with {
                 PropertyType = compilation.GetNamedType<ITypeSymbol>(),
-                Right = x.Right is TypeOfExpressionSyntax typeOfExpression ? ConvertToCompilationFetchExpression(typeOfExpression, compilation) : x.Right
+                Right = x.Right is TypeOfExpressionSyntax typeOfExpression ? ConvertToCompilationFetchExpression(typeOfExpression) : x.Right
             } : x)
             .ToImmutableList()
     };
@@ -66,9 +74,7 @@ public class AttributeInfoGenerator : IIncrementalGenerator {
     };
   }
 
-  private static ExpressionSyntax ConvertToCompilationFetchExpression(TypeOfExpressionSyntax expression, Compilation compilation) {
-    var typeArg = expression.Type;
-
+  private static ExpressionSyntax ConvertToCompilationFetchExpression(TypeOfExpressionSyntax expression) {
     return SyntaxFactory.InvocationExpression(
         SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
