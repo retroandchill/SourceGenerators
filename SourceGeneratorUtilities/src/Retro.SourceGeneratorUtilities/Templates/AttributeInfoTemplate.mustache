@@ -1,6 +1,7 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Retro.SourceGeneratorUtilities.Core.Attributes;
 using Retro.SourceGeneratorUtilities.Core.Types;
@@ -17,30 +18,41 @@ public record {{AttributeName}}Info{{#HasParentClass}} : {{ParentAttribute}}Info
 
 public static class {{AttributeName}}InfoExtensions {
 
-  public static {{AttributeName}}Info New(this AttributeInfo<{{AttributeName}}> info, Compilation compilation) {
-    var args = info.Data.ConstructorArguments;
+  public static {{AttributeName}}Info Get{{AttributeName}}Info(this AttributeData data, Compilation compilation) {
+    return data.TryGet{{AttributeName}}Info(compilation, out var info) ? info : throw new InvalidOperationException("Cannot create {{AttributeName}}Info");
+  }  
+
+  public static bool TryGet{{AttributeName}}Info(this AttributeData data, Compilation compilation, [NotNullWhen(true)] out {{AttributeName}}Info? info) {
+    var args = data.ConstructorArguments;
 
     {{#Constructors}}
-    if (info.Data.HasMatchingConstructor({{#Parameters}}typeof({{NonNullableType}}){{^IsLast}}, {{/IsLast}}{{/Parameters}})) {
+    if (data.HasMatchingConstructor({{#Parameters}}typeof({{NonNullableType}}){{^IsLast}}, {{/IsLast}}{{/Parameters}})) {
       {{#Parameters}}
-      var {{Name}} = info.Data.ConstructorArguments[{{Index}}].GetTypedValue<{{Type}}>();
+      var {{Name}} = data.ConstructorArguments[{{Index}}].GetTypedValue<{{Type}}>();
       {{/Parameters}}
     
-      var namedArguments = info.Data.NamedArguments.ToDictionary();
+      var namedArguments = data.NamedArguments.ToDictionary();
     
-      return new {{../AttributeName}}Info {
+      info = new {{../AttributeName}}Info {
         {{#Assignments}}
         {{PropertyName}} = {{#HasSetter}}namedArguments.TryGetValue("{{PropertyName}}", out var value{{PropertyName}}) ? value{{PropertyName}}.GetTypedValue<{{PropertyType}}>() : {{/HasSetter}}{{Right}},
         {{/Assignments}}
       };
+      return true;
     }
     
     {{/Constructors}}
-    throw new InvalidOperationException("Cannot create {{AttributeName}}Info"); 
+
+    info = null;
+    return false;
   }
 
-  public static IEnumerable<{{AttributeName}}Info> New(this IEnumerable<AttributeInfo<{{AttributeName}}>> infos, Compilation compilation) {
-    return infos.Select(info => info.New(compilation));
+  public static IEnumerable<{{AttributeName}}Info> Get{{AttributeName}}Infos(this IEnumerable<AttributeData> attributeDatas, Compilation compilation) {
+    foreach (var data in attributeDatas) {
+      if (data.TryGet{{AttributeName}}Info(compilation, out var info)) {
+        yield return info;
+      }
+    }
   }
 
 }

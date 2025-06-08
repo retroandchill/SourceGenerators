@@ -47,7 +47,7 @@ public class AttributeInfoTest {
     Assert.That(attributes, Has.Count.EqualTo(1));
     var attribute = attributes[0];
 
-    var info = attribute.GetInfo<PropertyOnlyAttribute>().New(compilation);
+    var info = attribute.GetPropertyOnlyAttributeInfo(compilation);
     Assert.That(info.Property, Is.EqualTo(2));
   }
   
@@ -68,7 +68,7 @@ public class AttributeInfoTest {
     Assert.That(compiledClass, Is.Not.Null);
 
     var attributes = compiledClass.GetAttributes()
-        .GetInfo<MultipleAllowedAttribute>().New(compilation)
+        .GetMultipleAllowedAttributeInfos(compilation)
         .ToImmutableList();
     Assert.That(attributes, Has.Count.EqualTo(2));
     Assert.Multiple(() => {
