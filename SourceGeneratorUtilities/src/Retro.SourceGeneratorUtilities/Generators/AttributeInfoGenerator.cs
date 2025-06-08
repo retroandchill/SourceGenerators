@@ -70,7 +70,7 @@ public class AttributeInfoGenerator : IIncrementalGenerator {
   }
 
   private static void Execute(Compilation compilation, IEnumerable<INamedTypeSymbol> classSymbols, SourceProductionContext context) {
-    var allClassSymbols = classSymbols.GetPropertyInitializations();
+    var allClassSymbols = classSymbols.GetDataClassOverviews();
     foreach (var initializer in allClassSymbols) {
       var classSymbol = initializer.Value;
       var templateParams = new {

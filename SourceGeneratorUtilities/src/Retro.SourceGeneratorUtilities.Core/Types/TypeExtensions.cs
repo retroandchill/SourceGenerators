@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -11,7 +10,18 @@ using Retro.SourceGeneratorUtilities.Core.Model;
 
 namespace Retro.SourceGeneratorUtilities.Core.Types;
 
+/// <summary>
+/// Provides extension methods for operations related to Roslyn's <see cref="ITypeSymbol"/> and .NET <see cref="Type"/>.
+/// </summary>
 public static class TypeExtensions {
+  /// <summary>
+  /// Determines if the current <see cref="ITypeSymbol"/> represents the same type as the specified <see cref="Type"/>.
+  /// </summary>
+  /// <param name="type">The current type symbol to check.</param>
+  /// <param name="targetType">The target .NET type to compare against.</param>
+  /// <returns>
+  /// True if the current type symbol represents the same type as the specified target type; otherwise, false.
+  /// </returns>
   public static bool IsSameType(this ITypeSymbol type, Type targetType) {
     if (targetType == typeof(void)) return type.SpecialType == SpecialType.System_Void;
     if (targetType == typeof(bool)) return type.SpecialType == SpecialType.System_Boolean;
@@ -33,6 +43,14 @@ public static class TypeExtensions {
     return type.ToString() == targetType.FullName;
   }
 
+  /// <summary>
+  /// Determines if the current <see cref="ITypeSymbol"/> represents the same type as the specified generic type parameter <typeparamref name="T"/>.
+  /// </summary>
+  /// <typeparam name="T">The target .NET type to compare against.</typeparam>
+  /// <param name="type">The current type symbol to check.</param>
+  /// <returns>
+  /// True if the current type symbol represents the same type as the specified generic type parameter <typeparamref name="T"/>; otherwise, false.
+  /// </returns>
   public static bool IsSameType<T>(this ITypeSymbol type) {
     return type.IsSameType(typeof(T));
   }
@@ -83,22 +101,17 @@ public static class TypeExtensions {
     };
   }
 
-  public static TypedConstantKind GetTypedConstantKind(this ITypeSymbol type) {
-    if (type.IsSameType<Type>()) {
-      return TypedConstantKind.Type;
-    }
-
-    return type.TypeKind switch {
-        TypeKind.Enum => TypedConstantKind.Enum,
-        TypeKind.Array => TypedConstantKind.Array,
-        _ => type.SpecialType switch {
-            SpecialType.System_Boolean or SpecialType.System_Char or SpecialType.System_SByte or SpecialType.System_Byte or SpecialType.System_Int16 or SpecialType.System_UInt16 or SpecialType.System_Int32 or SpecialType.System_UInt32 or SpecialType.System_Int64 or SpecialType.System_UInt64
-                or SpecialType.System_Single or SpecialType.System_Double => TypedConstantKind.Primitive,
-            _ => TypedConstantKind.Error
-        }
-    };
-  }
-
+  /// <summary>
+  /// Retrieves the value of the specified <see cref="TypedConstant"/> and casts it to the specified type <typeparamref name="T"/>.
+  /// </summary>
+  /// <typeparam name="T">The target type to cast the value to.</typeparam>
+  /// <param name="attributeValue">The <see cref="TypedConstant"/> containing the value to retrieve.</param>
+  /// <returns>
+  /// The value of the <see cref="TypedConstant"/> cast to the specified type <typeparamref name="T"/>.
+  /// </returns>
+  /// <exception cref="InvalidOperationException">
+  /// Thrown if the value of the <see cref="TypedConstant"/> is null and the specified type <typeparamref name="T"/> is a value type.
+  /// </exception>
   public static T GetTypedValue<T>(this TypedConstant attributeValue) {
     if (attributeValue.Value is null && typeof(T).IsValueType) {
       throw new InvalidOperationException("Type is null");
@@ -107,6 +120,15 @@ public static class TypeExtensions {
     return (T) attributeValue.Value!;
   }
 
+  /// <summary>
+  /// Retrieves the <see cref="INamedTypeSymbol"/> associated with the specified .NET <see cref="Type"/> from the provided <see cref="Compilation"/>.
+  /// </summary>
+  /// <param name="compilation">The Roslyn <see cref="Compilation"/> instance used to search for the type.</param>
+  /// <param name="type">The .NET <see cref="Type"/> to find within the compilation.</param>
+  /// <returns>
+  /// The <see cref="INamedTypeSymbol"/> representing the specified <see cref="Type"/> if found; otherwise, an exception is thrown.
+  /// </returns>
+  /// <exception cref="InvalidOperationException">Thrown if the provided type or its metadata name is null, or if the type cannot be found in the compilation.</exception>
   public static INamedTypeSymbol GetNamedType(this Compilation compilation, Type type) {
     var metadataName = type.FullName;
     if (metadataName is null) {
@@ -121,20 +143,35 @@ public static class TypeExtensions {
     return symbol;
   }
 
+  /// <summary>
+  /// Retrieves the <see cref="INamedTypeSymbol"/> that corresponds to the specified .NET <see cref="Type"/> within the provided <see cref="Compilation"/>.
+  /// </summary>
+  /// <param name="compilation">The compilation context to search for the specified type.</param>
+  /// <typeparam name="T">The .NET type for which to retrieve the corresponding <see cref="INamedTypeSymbol"/>.</typeparam>
+  /// <returns>
+  /// The <see cref="INamedTypeSymbol"/> that corresponds to the specified .NET type, or null if no matching symbol is found.
+  /// </returns>
   public static INamedTypeSymbol GetNamedType<T>(this Compilation compilation) {
     return compilation.GetNamedType(typeof(T));
   }
 
-  public static ImmutableDictionary<INamedTypeSymbol, DataTypeOverview> GetPropertyInitializations(this IEnumerable<INamedTypeSymbol> types) {
+  /// <summary>
+  /// Generates an immutable dictionary of data class overviews for the specified collection of <see cref="INamedTypeSymbol"/> instances.
+  /// </summary>
+  /// <param name="types">The collection of <see cref="INamedTypeSymbol"/> instances to generate data class overviews for.</param>
+  /// <returns>
+  /// An immutable dictionary mapping each <see cref="INamedTypeSymbol"/> to its corresponding <see cref="DataTypeOverview"/>.
+  /// </returns>
+  public static ImmutableDictionary<INamedTypeSymbol, DataTypeOverview> GetDataClassOverviews(this IEnumerable<INamedTypeSymbol> types) {
     var exploreSet = new Dictionary<INamedTypeSymbol, DataTypeOverview>(NamedTypeSymbolEqualityComparer.Default);
     foreach (var type in types) {
-      GetPropertyInitialization(type, exploreSet);
+      GetDataClassOverview(type, exploreSet);
     }
 
     return exploreSet.ToImmutableDictionary(NamedTypeSymbolEqualityComparer.Default);
   }
 
-  private static DataTypeOverview? GetPropertyInitialization(this INamedTypeSymbol type, Dictionary<INamedTypeSymbol, DataTypeOverview> exploreSet) {
+  private static DataTypeOverview? GetDataClassOverview(this INamedTypeSymbol type, Dictionary<INamedTypeSymbol, DataTypeOverview> exploreSet) {
     if (type.SpecialType != SpecialType.None || type.IsSameType<Attribute>()) {
       return null;
     }
@@ -143,7 +180,7 @@ public static class TypeExtensions {
       return overview;
     }
     
-    var baseType = type.BaseType?.GetPropertyInitialization(exploreSet);
+    var baseType = type.BaseType?.GetDataClassOverview(exploreSet);
 
     var publicProperties = type.GetProperties()
         .Where(x => x.Accessibility == AccessibilityLevel.Public)
@@ -210,7 +247,7 @@ public static class TypeExtensions {
           return new {
               Parameter = x,
               Assignment = assignment is not null ? new AssignmentOverview(assignment.Symbol, assignment.Initializer!) : null
-          };
+          }!;
 
         })
         .ToImmutableList();

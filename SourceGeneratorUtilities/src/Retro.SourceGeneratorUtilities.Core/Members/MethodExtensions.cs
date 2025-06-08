@@ -8,14 +8,28 @@ using Retro.SourceGeneratorUtilities.Core.Model;
 
 namespace Retro.SourceGeneratorUtilities.Core.Members;
 
+/// <summary>
+/// Provides extension methods for extracting and processing metadata related to methods, constructors,
+/// and their parameters from symbols in the Roslyn compilation model.
+/// </summary>
 public static class MethodExtensions {
 
+  /// <summary>
+  /// Retrieves all constructors of the specified named type symbol as a collection of <see cref="ConstructorOverview"/> objects.
+  /// </summary>
+  /// <param name="type">The <see cref="INamedTypeSymbol"/> representing the type whose constructors are to be retrieved.</param>
+  /// <returns>A collection of <see cref="ConstructorOverview"/> representing all constructors of the specified type.</returns>
   public static IEnumerable<ConstructorOverview> GetAllConstructors(this INamedTypeSymbol type) {
     return type.Constructors
         .Select(x => x.GetConstructorOverview())
         .Where(x => x is not null)!;
   }
 
+  /// <summary>
+  /// Retrieves an overview of the specified method symbol if it is a constructor.
+  /// </summary>
+  /// <param name="symbol">The <see cref="IMethodSymbol"/> representing the method to evaluate and retrieve the overview for.</param>
+  /// <returns>A <see cref="ConstructorOverview"/> representing the constructor's metadata, or null if the symbol is not a constructor.</returns>
   public static ConstructorOverview? GetConstructorOverview(this IMethodSymbol symbol) {
     if (symbol.MethodKind != MethodKind.Constructor) {
       return null;
@@ -33,6 +47,11 @@ public static class MethodExtensions {
     };
   }
 
+  /// <summary>
+  /// Retrieves the parameters of the specified method symbol as an immutable array of <see cref="ParameterOverview"/> objects.
+  /// </summary>
+  /// <param name="symbol">The <see cref="IMethodSymbol"/> representing the method whose parameters are to be retrieved.</param>
+  /// <returns>An immutable array of <see cref="ParameterOverview"/> representing the parameters of the specified method.</returns>
   public static ImmutableArray<ParameterOverview> GetParameters(this IMethodSymbol symbol) {
     return [
         ..symbol.Parameters
@@ -40,6 +59,14 @@ public static class MethodExtensions {
     ];
   }
 
+  /// <summary>
+  /// Creates a <see cref="ParameterOverview"/> object for the specified parameter symbol,
+  /// capturing details such as the parameter's type, name, default value, position, and whether it is the last parameter.
+  /// </summary>
+  /// <param name="symbol">The <see cref="IParameterSymbol"/> representing the parameter to process.</param>
+  /// <param name="index">The zero-based index of the parameter within the method or constructor signature.</param>
+  /// <param name="isLast">A boolean indicating whether the parameter is the last one in the signature.</param>
+  /// <returns>A <see cref="ParameterOverview"/> object containing metadata about the specified parameter.</returns>
   public static ParameterOverview GetParameterOverview(this IParameterSymbol symbol, int index = 0, bool isLast = false) {
     return new ParameterOverview(symbol.Type, symbol.Name) {
         DefaultValue = symbol.DeclaringSyntaxReferences
