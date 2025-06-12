@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.FindSymbols;
 
 namespace Retro.SourceGeneratorUtilities.Core.Types;
 
@@ -43,7 +40,7 @@ public static class TypeExtensions {
     if (targetType == typeof(object)) return type.SpecialType == SpecialType.System_Object;
 
     // Handle generic types
-    if (type is not INamedTypeSymbol namedType || !targetType.IsGenericType) return type.ToString() == targetType.FullName;
+    if (type is not INamedTypeSymbol namedType || !targetType.IsGenericType) return type.WithNullableAnnotation(NullableAnnotation.NotAnnotated).ToString() == targetType.FullName;
     
     if (!namedType.IsGenericType)
       return false;
@@ -192,5 +189,20 @@ public static class TypeExtensions {
   /// </returns>
   public static INamedTypeSymbol GetNamedType<T>(this Compilation compilation) {
     return compilation.GetNamedType(typeof(T));
+  }
+
+  /// <summary>
+  /// Retrieves the specified type and its base types in a sequence, starting from the type itself and traversing up the inheritance hierarchy.
+  /// </summary>
+  /// <param name="type">The type symbol for which to retrieve the type and its base types.</param>
+  /// <returns>
+  /// A sequence of <see cref="ITypeSymbol"/> objects representing the specified type and its base types in order of inheritance.
+  /// </returns>
+  public static IEnumerable<ITypeSymbol> GetBaseTypeAndThis(this ITypeSymbol type) {
+    var current = type;
+    while (current != null) {
+      yield return current;
+      current = current.BaseType;
+    }
   }
 }

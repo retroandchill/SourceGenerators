@@ -9,20 +9,13 @@ using Retro.SourceGeneratorUtilities.Core.Types;
 
 namespace {{Namespace}};
 
-public record {{AttributeName}}Info{{#HasParentClass}} : {{ParentAttribute}}Info{{/HasParentClass}} {
+public static class {{Name}}Extensions {
 
-  {{#Properties}}
-  public required {{Type}} {{Name}} { get; init; }
-  {{/Properties}}
-}
-
-public static class {{AttributeName}}InfoExtensions {
-
-  public static {{AttributeName}}Info Get{{AttributeName}}Info(this AttributeData data, Compilation compilation) {
-    return data.TryGet{{AttributeName}}Info(compilation, out var info) ? info : throw new InvalidOperationException("Cannot create {{AttributeName}}Info");
+  public static {{Name}} Get{{Name}}(this AttributeData data) {
+    return data.TryGet{{Name}}(out var info) ? info : throw new InvalidOperationException("Cannot create {{AttributeName}}Info");
   }  
 
-  public static bool TryGet{{AttributeName}}Info(this AttributeData data, Compilation compilation, [NotNullWhen(true)] out {{AttributeName}}Info? info) {
+  public static bool TryGet{{Name}}(this AttributeData data, [NotNullWhen(true)] out {{Name}}? info) {
     var args = data.ConstructorArguments;
 
     if (data.AttributeClass is null) {
@@ -31,8 +24,8 @@ public static class {{AttributeName}}InfoExtensions {
     }
 
     {{#ChildClasses}}
-    if (!data.AttributeClass.IsOfType(typeof({{FullName}}))) {
-      if ({{FullName}}InfoExtensions.TryGet{{Name}}Info(data, compilation, out var childInfo)) {
+    if (!data.AttributeClass.IsOfType(typeof({{AttributeType}}))) {
+      if ({{ModelType}}Extensions.TryGet{{ModelName}}(data, out var childInfo)) {
         info = childInfo;
         return true;
       } else {
@@ -42,23 +35,18 @@ public static class {{AttributeName}}InfoExtensions {
     }
     {{/ChildClasses}}
 
-    if (!data.AttributeClass.IsSameType(typeof({{AttributeName}}))) {
+    if (!data.AttributeClass.IsSameType(typeof({{AttributeSymbol}}))) {
       info = null;
       return false;
     }
 
     {{#Constructors}}
     if (data.HasMatchingConstructor({{#Parameters}}typeof({{NonNullableType}}){{^IsLast}}, {{/IsLast}}{{/Parameters}})) {
-      {{#Parameters}}
-      var {{Name}} = data.ConstructorArguments[{{Index}}].GetTypedValue<{{Type}}>();
-      {{/Parameters}}
-    
       var namedArguments = data.NamedArguments.ToDictionary();
-    
-      info = new {{../AttributeName}}Info {
-        {{#Assignments}}
-        {{PropertyName}} = {{#HasSetter}}namedArguments.TryGetValue("{{PropertyName}}", out var value{{PropertyName}}) ? value{{PropertyName}}.GetTypedValue<{{PropertyType}}>() : {{/HasSetter}}{{Right}},
-        {{/Assignments}}
+      info = new {{../Name}}({{#Parameters}}data.ConstructorArguments[{{Index}}].GetTypedValue<{{Type}}>(){{^IsLast}}, {{/IsLast}}{{/Parameters}}) {
+        {{#each ../Properties}}
+          {{Name}} = namedArguments.TryGetValue("{{Name}}", out var value{{Name}}) ? value{{Name}}.GetTypedValue<{{Type}}>() : {{#HasDefaultValue}}{{DefaultValue}}{{/HasDefaultValue}}{{^HasDefaultValue}}default{{/HasDefaultValue}},
+        {{/each}}
       };
       return true;
     }
@@ -69,9 +57,9 @@ public static class {{AttributeName}}InfoExtensions {
     return false;
   }
 
-  public static IEnumerable<{{AttributeName}}Info> Get{{AttributeName}}Infos(this IEnumerable<AttributeData> attributeDatas, Compilation compilation) {
+  public static IEnumerable<{{Name}}> Get{{Name}}s(this IEnumerable<AttributeData> attributeDatas) {
     foreach (var data in attributeDatas) {
-      if (data.TryGet{{AttributeName}}Info(compilation, out var info)) {
+      if (data.TryGet{{Name}}(out var info)) {
         yield return info;
       }
     }

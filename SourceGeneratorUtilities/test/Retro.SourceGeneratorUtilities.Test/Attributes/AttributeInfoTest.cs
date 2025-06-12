@@ -1,10 +1,6 @@
 ﻿using System.Collections.Immutable;
 using Retro.SourceGeneratorUtilities.Core.Attributes;
-using Retro.SourceGeneratorUtilities.Core.Test.Attributes;
 using Retro.SourceGeneratorUtilities.Core.Test.Utils;
-
-[assembly: AttributeInfoType<PropertyOnlyAttribute>]
-[assembly: AttributeInfoType<MultipleAllowedAttribute>]
 
 namespace Retro.SourceGeneratorUtilities.Core.Test.Attributes;
 
@@ -15,6 +11,11 @@ public class PropertyOnlyAttribute : Attribute {
   
 }
 
+[AttributeInfoType<PropertyOnlyAttribute>]
+public record PropertyOnlyAttributeInfo {
+  public required int Property { get; init; } = 1;
+}
+
 [AttributeUsage(AttributeTargets.Class)]
 public class MultipleAllowedAttribute(string? constructorProperty = null) : Attribute {
   
@@ -22,6 +23,13 @@ public class MultipleAllowedAttribute(string? constructorProperty = null) : Attr
 
   public int Property { get; init; } = 1;
 
+}
+
+[AttributeInfoType<MultipleAllowedAttribute>]
+public record MultipleAllowedAttributeInfo(string? ConstructorProperty) {
+  
+  public required int Property { get; init; } = 1;
+  
 }
 
 public class AttributeInfoTest {
@@ -47,7 +55,7 @@ public class AttributeInfoTest {
     Assert.That(attributes, Has.Count.EqualTo(1));
     var attribute = attributes[0];
 
-    var info = attribute.GetPropertyOnlyAttributeInfo(compilation);
+    var info = attribute.GetPropertyOnlyAttributeInfo();
     Assert.That(info.Property, Is.EqualTo(2));
   }
   
@@ -68,7 +76,7 @@ public class AttributeInfoTest {
     Assert.That(compiledClass, Is.Not.Null);
 
     var attributes = compiledClass.GetAttributes()
-        .GetMultipleAllowedAttributeInfos(compilation)
+        .GetMultipleAllowedAttributeInfos()
         .ToImmutableList();
     Assert.That(attributes, Has.Count.EqualTo(2));
     Assert.Multiple(() => {

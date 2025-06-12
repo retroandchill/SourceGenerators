@@ -76,8 +76,4 @@
     <ProjectReference Include="..\Retro.SourceGeneratorUtilities.Core\Retro.SourceGeneratorUtilities.Core.csproj"/>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Model\" />
-  </ItemGroup>
-
 </Project>

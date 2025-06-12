@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Retro.SourceGeneratorUtilities.Core.Model.Attributes;
 using Retro.SourceGeneratorUtilities.Core.Types;
 
 namespace Retro.SourceGeneratorUtilities.Core.Attributes;
@@ -12,6 +12,40 @@ namespace Retro.SourceGeneratorUtilities.Core.Attributes;
 /// of source generation.
 /// </summary>
 public static class AttributeExtensions {
+  /// <summary>
+  /// Determines whether the specified <see cref="ISymbol"/> has an attribute
+  /// that matches the given <see cref="Type"/>.
+  /// </summary>
+  /// <param name="symbol">
+  /// The <see cref="ISymbol"/> to check for the presence of the attribute.
+  /// </param>
+  /// <param name="attributeType">
+  /// The <see cref="Type"/> of the attribute to check for.
+  /// </param>
+  /// <returns>
+  /// <c>true</c> if the <see cref="ISymbol"/> has an attribute of the specified type; otherwise, <c>false</c>.
+  /// </returns>
+  public static bool HasAttribute(this ISymbol symbol, Type attributeType) {
+    return symbol.GetAttributes()
+        .Any(a => a.AttributeClass?.IsOfType(attributeType) ?? false);
+  }
+
+  /// <summary>
+  /// Determines whether the specified <see cref="ISymbol"/> has an attribute
+  /// of type <typeparamref name="T"/>.
+  /// </summary>
+  /// <typeparam name="T">
+  /// The type of the attribute to check for.
+  /// </typeparam>
+  /// <param name="symbol">
+  /// The <see cref="ISymbol"/> to check for the presence of the attribute.
+  /// </param>
+  /// <returns>
+  /// <c>true</c> if the <see cref="ISymbol"/> has an attribute of type <typeparamref name="T"/>; otherwise, <c>false</c>.
+  /// </returns>
+  public static bool HasAttribute<T>(this ISymbol symbol) where T : Attribute {
+    return symbol.HasAttribute(typeof(T));
+  }
 
   /// <summary>
   /// Determines whether the given <see cref="AttributeData"/> has a constructor
@@ -45,44 +79,28 @@ public static class AttributeExtensions {
     return true;
   }
 
-  public static IEnumerable<INamedTypeSymbol> GetAttributeInfoTypes(this IAssemblySymbol assembly) {
-    return assembly.GetAttributes()
-        .Where(a => a.AttributeClass?.IsOfType<AttributeInfoTypeAttribute>() ?? false)
-        .Select(GetAttributeInfoType)
-        .Where(x => x is not null)
-        .SelectMany(ExtractAttributeTypes)
-        .Distinct(NamedTypeSymbolEqualityComparer.Default);
-  }
+  public static AttributeUsageInfo GetUsageInfo(this AttributeData attributeData) {
+    var attributeUsage = attributeData.AttributeClass?.GetAttributes()
+        .SingleOrDefault(a => a.AttributeClass?.IsOfType<AttributeUsageAttribute>() ?? false);
 
-  private static INamedTypeSymbol? GetAttributeInfoType(this AttributeData extractedAttribute) {
-    if (extractedAttribute?.AttributeClass is null) {
-      return null;
+    if (attributeUsage is null) {
+      return new AttributeUsageInfo();
     }
 
-    var attributeClass = extractedAttribute.AttributeClass;
-    if (attributeClass.IsGenericType && attributeClass.ConstructedFrom.IsSameType(typeof(AttributeInfoTypeAttribute<>))) {
-      return attributeClass.TypeArguments[0] as INamedTypeSymbol;
-    }
-    
-    if (attributeClass.IsSameType<AttributeInfoTypeAttribute>()) {
-      return extractedAttribute.ConstructorArguments[0].Value as INamedTypeSymbol;
+    if (!attributeUsage.HasMatchingConstructor(typeof(AttributeTargets))) {
+      throw new InvalidOperationException("Invalid attribute usage");
     }
 
-    throw new InvalidOperationException("Invalid attribute type");
-  }
-  
-  private static IEnumerable<INamedTypeSymbol> ExtractAttributeTypes(INamedTypeSymbol? namedType) {
-    if (namedType is null) {
-      yield break;
-    }
+    var target = attributeUsage.ConstructorArguments[0].GetTypedValue<AttributeTargets>();
 
-    while (!namedType.IsSameType<Attribute>()) {
-      yield return namedType;
-      if (namedType.BaseType is null) {
-        break;
-      }
+    var namedArguments = attributeUsage.NamedArguments.ToDictionary(x => x.Key, x => x.Value);
 
-      namedType = namedType.BaseType;
-    }
+    return new AttributeUsageInfo(target) {
+        AllowMultiple =
+            namedArguments.TryGetValue(nameof(AttributeUsageAttribute.AllowMultiple), out var allowMultiple) &&
+            allowMultiple.GetTypedValue<bool>(),
+        Inherited = namedArguments.TryGetValue(nameof(AttributeUsageAttribute.Inherited), out var inherited) &&
+                    inherited.GetTypedValue<bool>()
+    };
   }
 }
