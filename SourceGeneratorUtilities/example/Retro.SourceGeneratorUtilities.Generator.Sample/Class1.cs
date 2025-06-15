@@ -6,6 +6,6 @@ namespace Retro.SourceGeneratorUtilities.Generator.Sample;
 
 public class Class1 {
   public void ProcessAttribute(AttributeData attributeData) {
-    var info = attributeData.GetDummyAttributeInfo();
+    //var info = attributeData.GetDummyAttributeInfo();
   }
 }

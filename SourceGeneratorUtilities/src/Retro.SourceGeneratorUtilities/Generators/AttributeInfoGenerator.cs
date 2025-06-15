@@ -1,13 +1,11 @@
-﻿using System.Collections.Generic;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
 using HandlebarsDotNet;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Retro.SourceGeneratorUtilities.Core.Attributes;
-using Retro.SourceGeneratorUtilities.Core.Members;
+using Retro.SourceGeneratorUtilities.Core.Errors;
 using Retro.SourceGeneratorUtilities.Formatters;
 using Retro.SourceGeneratorUtilties.Generator.Properties;
 
@@ -34,6 +32,8 @@ public class AttributeInfoGenerator : IIncrementalGenerator {
     
     var allClassSymbols = allTypes
         .Select(x => x.ExtractAttributeInfoTypeOverview(allTypes))
+        .Where(result => !context.ReportDiagnostics(result))
+        .Select(r => r.Result)
         .ToImmutableArray();
     foreach (var templateParams in allClassSymbols) {
       var handlebars = Handlebars.Create();

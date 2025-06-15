@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Retro.SourceGeneratorUtilities.Core.Errors;
 using Retro.SourceGeneratorUtilities.Core.Members;
 using Retro.SourceGeneratorUtilities.Core.Model.Attributes;
 using Retro.SourceGeneratorUtilities.Core.Types;
@@ -45,7 +46,7 @@ public static class AttributeInfoTypeExtensions {
         .Select(t => t.Info);
   }
 
-  public static AttributeInfoTypeOverview ExtractAttributeInfoTypeOverview(this INamedTypeSymbol typeSymbol, 
+  public static DiagnosticResult<AttributeInfoTypeOverview> ExtractAttributeInfoTypeOverview(this INamedTypeSymbol typeSymbol, 
                                                                            ImmutableArray<INamedTypeSymbol> possibleTypes) {
     var attributeType = typeSymbol.GetAttributes()
         .GetAttributeInfoTypeInfos()
@@ -56,6 +57,20 @@ public static class AttributeInfoTypeExtensions {
     var attributeConstructors = attributeType.Constructors;
     var modelConstructors = typeSymbol.Constructors;
 
+    var validatedConstructors = attributeConstructors
+        .Select(attributeConstructor => attributeConstructor.FindMatchingConstructor(typeSymbol, modelConstructors))
+        .Collect()
+        .SelectNonNull((m, i) => new AttributeInfoConstructorOverview {
+            Parameters = m.Parameters
+                .Select((p, j) => new AttributeInfoConstructorParamOverview(p) {
+                    Index = i,
+                    IsLast = j == m.Parameters.Length - 1
+                })
+                .ToImmutableList(),
+            IsLast = i == attributeConstructors.Length - 1
+        })
+        .ToImmutableArray();
+
     var attributeProperties = attributeType.GetBaseTypeAndThis()
         .SelectMany(t => t.GetPublicProperties())
         .Where(t => t.SetMethod?.DeclaredAccessibility == Accessibility.Public)
@@ -64,50 +79,45 @@ public static class AttributeInfoTypeExtensions {
         .SelectMany(t => t.GetPublicProperties())
         .Where(t => t.SetMethod?.DeclaredAccessibility == Accessibility.Public)
         .ToImmutableArray();
-    
-    return new AttributeInfoTypeOverview(typeSymbol, attributeType) {
-        Constructors = [
-            ..attributeConstructors
-                .Select(attributeConstructor => attributeConstructor.FindMatchingConstructor(modelConstructors))
-                .Select((m, i) => new AttributeInfoConstructorOverview {
-                    Parameters = m.Parameters
-                        .Select((p, j) => new AttributeInfoConstructorParamOverview(p) {
-                            Index = i,
-                            IsLast = j == m.Parameters.Length - 1
-                        })
-                        .ToImmutableList(),
-                    IsLast = i == attributeConstructors.Length - 1
-                })
-        ],
-        Properties = [
-            ..attributeProperties
-                .Select(property => property.FindMatchingProperty(modelProperties))
-                .Select((p, i) => new AttributeInfoPropertyOverview(p) {
-                    DefaultValue = p.DeclaringSyntaxReferences
-                        .Select(s => s.GetSyntax())
-                        .OfType<PropertyDeclarationSyntax>()
-                        .Select(s => s.Initializer?.Value)
-                        .FirstOrDefault(),
-                    IsLast = i == attributeProperties.Length - 1
-                })
-        ],
-        ChildClasses = [
-            ..possibleTypes
-                .Where(t => t.BaseType?.Equals(typeSymbol, SymbolEqualityComparer.Default) ?? false)
-                .Select(t => new ChildAttributeTypeInfoOverview(t, t.GetAttributes()
-                                                                    .GetAttributeInfoTypeInfos()
-                                                                    .Select(x => x.Type)
-                                                                    .OfType<INamedTypeSymbol>()
-                                                                    .Single()))
-                .Where(d => d.AttributeType.BaseType?.Equals(attributeType, SymbolEqualityComparer.Default) ?? false)
-                .GroupBy(d => d.AttributeType, NamedTypeSymbolEqualityComparer.Default)
-                .Select(d => d.First())
-        ]
-    };
+
+    var validatedProperties = attributeProperties
+        .Select(property => property.FindMatchingProperty(typeSymbol, modelProperties))
+        .Collect()
+        .SelectNonNull((p, i) => new AttributeInfoPropertyOverview(p) {
+            DefaultValue = p.DeclaringSyntaxReferences
+                .Select(s => s.GetSyntax())
+                .OfType<PropertyDeclarationSyntax>()
+                .Select(s => s.Initializer?.Value)
+                .FirstOrDefault(),
+            IsLast = i == attributeProperties.Length - 1
+        })
+        .ToImmutableArray();
+
+    return validatedConstructors
+        .Combine(validatedProperties,
+                 (c, p) => new AttributeInfoTypeOverview(typeSymbol, attributeType) {
+                     Constructors = c,
+                     Properties = p,
+                     ChildClasses = [
+                         ..possibleTypes
+                             .Where(t => t.BaseType?.Equals(typeSymbol, SymbolEqualityComparer.Default) ?? false)
+                             .Select(t => new ChildAttributeTypeInfoOverview(t, t.GetAttributes()
+                                                                                 .GetAttributeInfoTypeInfos()
+                                                                                 .Select(x => x.Type)
+                                                                                 .OfType<INamedTypeSymbol>()
+                                                                                 .Single()))
+                             .Where(d =>
+                                        d.AttributeType.BaseType?.Equals(
+                                            attributeType, SymbolEqualityComparer.Default) ?? false)
+                             .GroupBy(d => d.AttributeType, NamedTypeSymbolEqualityComparer.Default)
+                             .Select(d => d.First())
+                     ]
+                 });
   }
 
-  private static IMethodSymbol FindMatchingConstructor(this IMethodSymbol targetConstructor,
-                                                        ImmutableArray<IMethodSymbol> modelConstructors) {
+  private static DiagnosticResult<IMethodSymbol?> FindMatchingConstructor(this IMethodSymbol targetConstructor,
+                                                                          INamedTypeSymbol source, 
+                                                                          ImmutableArray<IMethodSymbol> modelConstructors) {
 
     foreach (var modelConstructor in modelConstructors) {
       if (modelConstructor.Parameters.Length != targetConstructor.Parameters.Length) {
@@ -130,26 +140,42 @@ public static class AttributeInfoTypeExtensions {
       }
 
       if (isMatch) {
-        return modelConstructor;
+        return new DiagnosticResult<IMethodSymbol?>(modelConstructor);
       }
     }
 
-    throw new InvalidOperationException($"Missing attribute constructor for: {targetConstructor}");
+    return new DiagnosticResult<IMethodSymbol?>(null,
+                                                  Diagnostic.Create(new DiagnosticDescriptor("SGU001",
+                                                                      "Missing model constructor",
+                                                                      $"Missing attribute constructor for: {targetConstructor}",
+                                                                      "Model Generator",
+                                                                      DiagnosticSeverity.Error,
+                                                                      true),
+                                                                    source.Locations.FirstOrDefault(),
+                                                                    source.Locations.Skip(1)));
   }
 
-  private static IPropertySymbol FindMatchingProperty(this IPropertySymbol targetProperty,
-                                                      ImmutableArray<IPropertySymbol> modelProperties) {
+  private static DiagnosticResult<IPropertySymbol?> FindMatchingProperty(
+      this IPropertySymbol targetProperty, INamedTypeSymbol source, ImmutableArray<IPropertySymbol> modelProperties) {
     foreach (var modelProperty in modelProperties.Where(modelProperty => modelProperty.Name == targetProperty.Name)) {
       if (targetProperty.Type.IsSameType<Type>()) {
         if (!modelProperty.Type.IsSameType<ITypeSymbol>()) continue;
-        return modelProperty;
+        return new DiagnosticResult<IPropertySymbol?>(modelProperty);
       }
 
       if (targetProperty.Type.Equals(modelProperty.Type, SymbolEqualityComparer.Default)) {
-        return modelProperty;
+        return new DiagnosticResult<IPropertySymbol?>(modelProperty);
       }
     }
-    
-    throw new InvalidOperationException($"Missing property: {targetProperty}");
+
+    return new DiagnosticResult<IPropertySymbol?>(null,
+        Diagnostic.Create(new DiagnosticDescriptor("SGU002",
+                                                   "Missing model property",
+                                                   $"Missing property: {targetProperty}",
+                                                   "Model Generator",
+                                                   DiagnosticSeverity.Error,
+                                                   true),
+                          source.Locations.FirstOrDefault(),
+                          source.Locations.Skip(1)));
   }
 }
