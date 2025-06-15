@@ -1,8 +1,8 @@
 ﻿using System.Collections.Immutable;
 using Retro.SourceGeneratorUtilities.Core.Attributes;
-using Retro.SourceGeneratorUtilities.Core.Test.Utils;
+using Retro.SourceGeneratorUtilities.Test.Utils;
 
-namespace Retro.SourceGeneratorUtilities.Core.Test.Attributes;
+namespace Retro.SourceGeneratorUtilities.Test.Attributes;
 
 [AttributeUsage(AttributeTargets.Class)]
 public class PropertyOnlyAttribute : Attribute {

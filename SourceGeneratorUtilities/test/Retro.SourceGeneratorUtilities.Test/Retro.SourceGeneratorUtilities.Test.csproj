@@ -6,7 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
-        <RootNamespace>Retro.SourceGeneratorUtilities.Core.Test</RootNamespace>
+        <RootNamespace>Retro.SourceGeneratorUtilities.Test</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

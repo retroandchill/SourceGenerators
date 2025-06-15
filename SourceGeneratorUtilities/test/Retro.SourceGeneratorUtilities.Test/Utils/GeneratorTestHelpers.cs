@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-namespace Retro.SourceGeneratorUtilities.Core.Test.Utils;
+
+namespace Retro.SourceGeneratorUtilities.Test.Utils;
 
 public static class GeneratorTestHelpers {
   public static Compilation CreateCompilation(string source, params IEnumerable<Type> additionalTypes) {
