@@ -96,33 +96,33 @@ public class TypeExtensionsTest {
 
     Assert.Multiple(() => {
       // Basic inheritance
-      Assert.That(typeSymbols[typeof(Attribute)]!.IsAssignableFrom(typeof(object)), Is.True,
+      Assert.That(typeSymbols[typeof(Attribute)]!.IsAssignableFrom<object>(), Is.True,
                   "Attribute should be of type object");
-      Assert.That(typeSymbols[typeof(object)]!.IsAssignableFrom(typeof(Attribute)), Is.False,
+      Assert.That(typeSymbols[typeof(object)]!.IsAssignableFrom<Attribute>(), Is.False,
                   "Object should not be of type Attribute");
 
       // Generic interface implementation
-      Assert.That(listOfString.IsAssignableFrom(typeof(IEnumerable<string>)), Is.True,
+      Assert.That(listOfString.IsAssignableFrom<IEnumerable<string>>(), Is.True,
                   "List<string> should implement IEnumerable<string>");
 
       // Covariant interface tests (if T : U then IEnumerable<T> : IEnumerable<U>)
-      Assert.That(ienumOfString.IsAssignableFrom(typeof(IEnumerable<object>)), Is.True,
+      Assert.That(ienumOfString.IsAssignableFrom<IEnumerable<object>>(), Is.True,
                   "IEnumerable<string> should be convertible to IEnumerable<object>");
-      Assert.That(listOfString.IsAssignableFrom(typeof(IEnumerable<object>)), Is.True,
+      Assert.That(listOfString.IsAssignableFrom<IEnumerable<object>>(), Is.True,
                   "List<string> should be convertible to IEnumerable<object>");
-      Assert.That(ienumOfObject.IsAssignableFrom(typeof(IEnumerable<string>)), Is.False,
+      Assert.That(ienumOfObject.IsAssignableFrom<IEnumerable<string>>(), Is.False,
                   "IEnumerable<object> should not be convertible to IEnumerable<string>");
 
       // Contravariant interface tests (if T : U then IComparer<U> : IComparer<T>)
-      Assert.That(comparerOfObject.IsAssignableFrom(typeof(IComparer<string>)), Is.True,
+      Assert.That(comparerOfObject.IsAssignableFrom<IComparer<string>>(), Is.True,
                   "IComparer<object> should be convertible to IComparer<string>");
-      Assert.That(comparerOfString.IsAssignableFrom(typeof(IComparer<object>)), Is.False,
+      Assert.That(comparerOfString.IsAssignableFrom<IComparer<object>>(), Is.False,
                   "IComparer<string> should not be convertible to IComparer<object>");
 
       // Generic type identity
-      Assert.That(listOfString.IsAssignableFrom(typeof(List<object>)), Is.False,
+      Assert.That(listOfString.IsAssignableFrom<List<object>>(), Is.False,
                   "List<string> should not be convertible to List<object>");
-      Assert.That(listOfObject.IsAssignableFrom(typeof(List<string>)), Is.False,
+      Assert.That(listOfObject.IsAssignableFrom<List<string>>(), Is.False,
                   "List<object> should not be convertible to List<string>");
     });
   }

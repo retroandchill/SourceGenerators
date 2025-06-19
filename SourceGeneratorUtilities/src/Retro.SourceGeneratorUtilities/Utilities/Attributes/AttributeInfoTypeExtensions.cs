@@ -146,43 +146,12 @@ internal static class AttributeInfoTypeExtensions {
                                                                           ImmutableArray<IMethodSymbol> modelConstructors) {
     var genericParameterOffset = targetConstructor.ContainingType.IsGenericType ? targetConstructor.ContainingType.TypeArguments.Length : 0;
     
-    foreach (var modelConstructor in modelConstructors) {
-      if (modelConstructor.Parameters.Length != targetConstructor.Parameters.Length + genericParameterOffset) {
-        continue;
-      }
-      
-      var isMatch = true;
-      for (var i = 0; i < genericParameterOffset; i++) {
-        var modelParameter = modelConstructor.Parameters[i];
-        if (modelParameter.Type.IsSameType<ITypeSymbol>()) continue;
-
-        isMatch = false;
-        break;
-      }
-
-      if (!isMatch) {
-        break;
-      }
-      
-      for (var i = genericParameterOffset; i < modelConstructor.Parameters.Length; i++) {
-        var modelParameter = modelConstructor.Parameters[i];
-        var targetParameter = targetConstructor.Parameters[i - genericParameterOffset];
-
-        if (targetParameter.Type.IsSameType<Type>()) {
-          if (modelParameter.Type.IsSameType<ITypeSymbol>()) continue;
-          isMatch = false;
-          break;
-        }
-
-        if (targetParameter.Type.Equals(modelParameter.Type, SymbolEqualityComparer.Default)) continue;
-
-        isMatch = false;
-        break;
-      }
-
-      if (isMatch) {
-        return new DiagnosticResult<IMethodSymbol?>(modelConstructor);
-      }
+    var modelConstructor = modelConstructors
+        .Where(c => c.Parameters.Length == targetConstructor.Parameters.Length + genericParameterOffset)
+        .TakeWhile(c => MatchGenericParameters(genericParameterOffset, c))
+        .FirstOrDefault(modelConstructor => MatchConstructorParameters(targetConstructor, genericParameterOffset, modelConstructor));
+    if (modelConstructor is not null) {
+      return new DiagnosticResult<IMethodSymbol?>(modelConstructor);
     }
 
     return new DiagnosticResult<IMethodSymbol?>(null,
@@ -194,6 +163,34 @@ internal static class AttributeInfoTypeExtensions {
                                                                       true),
                                                                     source.Locations.FirstOrDefault(),
                                                                     source.Locations.Skip(1)));
+  }
+  private static bool MatchConstructorParameters(IMethodSymbol targetConstructor, int genericParameterOffset, IMethodSymbol modelConstructor) {
+    for (var i = genericParameterOffset; i < modelConstructor.Parameters.Length; i++) {
+      var modelParameter = modelConstructor.Parameters[i];
+      var targetParameter = targetConstructor.Parameters[i - genericParameterOffset];
+
+      if (targetParameter.Type.IsSameType<Type>()) {
+        if (modelParameter.Type.IsSameType<ITypeSymbol>()) continue;
+
+        return false;
+      }
+
+      if (targetParameter.Type.Equals(modelParameter.Type, SymbolEqualityComparer.Default)) continue;
+
+      return false;
+    }
+    
+    return true;
+  }
+  private static bool MatchGenericParameters(int genericParameterOffset, IMethodSymbol modelConstructor) {
+    for (var i = 0; i < genericParameterOffset; i++) {
+      var modelParameter = modelConstructor.Parameters[i];
+      if (modelParameter.Type.IsSameType<ITypeSymbol>()) continue;
+
+      return false;
+    }
+    
+    return true;
   }
 
   private static DiagnosticResult<IPropertySymbol?> FindMatchingProperty(
