@@ -1,17 +1,17 @@
 ﻿using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Retro.SourceGeneratorUtilities.Core.Errors;
-using Retro.SourceGeneratorUtilities.Core.Members;
-using Retro.SourceGeneratorUtilities.Core.Model.Attributes;
-using Retro.SourceGeneratorUtilities.Core.Types;
+using Retro.SourceGeneratorUtilities.Utilities.Errors;
+using Retro.SourceGeneratorUtilities.Utilities.Members;
+using Retro.SourceGeneratorUtilities.Utilities.Model.Attributes;
+using Retro.SourceGeneratorUtilities.Utilities.Types;
 
-namespace Retro.SourceGeneratorUtilities.Core.Attributes;
+namespace Retro.SourceGeneratorUtilities.Utilities.Attributes;
 
 /// <summary>
 /// Provides extension methods for working with attribute information types.
 /// </summary>
-public static class AttributeInfoTypeExtensions {
+internal static class AttributeInfoTypeExtensions {
   /// <summary>
   /// Retrieves attribute information type details from the given attribute data.
   /// </summary>

@@ -1,14 +1,19 @@
-﻿using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
-using Retro.SourceGeneratorUtilities.Core.Types;
-namespace Retro.SourceGeneratorUtilities.Core.Members;
+﻿using Microsoft.CodeAnalysis;
+#if SOURCE_UTILS_GENERATOR
+using RhoMicro.CodeAnalysis;
+#endif
+
+namespace Retro.SourceGeneratorUtilities.Utilities.Members;
 
 /// <summary>
 /// A custom equality comparer for comparing instances of <see cref="IMethodSymbol"/>.
 /// This comparer leverages an instance of <see cref="ISymbol"/> equality comparer
 /// to determine equality and hash codes for method symbols.
 /// </summary>
-public class MethodSymbolEqualityComparer : IEqualityComparer<IMethodSymbol> {
+#if SOURCE_UTILS_GENERATOR
+[IncludeFile]
+#endif
+internal class MethodSymbolEqualityComparer : IEqualityComparer<IMethodSymbol> {
   private readonly IEqualityComparer<ISymbol> _equalityComparerImplementation;
 
   /// <summary>

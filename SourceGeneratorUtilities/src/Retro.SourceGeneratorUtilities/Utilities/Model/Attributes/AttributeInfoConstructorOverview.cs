@@ -1,7 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Collections.Immutable;
-
-namespace Retro.SourceGeneratorUtilities.Core.Model.Attributes;
+﻿using System.Collections.Immutable;
+namespace Retro.SourceGeneratorUtilities.Utilities.Model.Attributes;
 
 /// <summary>
 /// Represents an overview of a constructor within an attribute information model.

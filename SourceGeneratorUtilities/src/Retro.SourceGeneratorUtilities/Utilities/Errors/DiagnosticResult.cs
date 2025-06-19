@@ -1,11 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
+#if SOURCE_UTILS_GENERATOR
+using RhoMicro.CodeAnalysis;
+#endif
 
-namespace Retro.SourceGeneratorUtilities.Core.Errors;
+namespace Retro.SourceGeneratorUtilities.Utilities.Errors;
 
-public record struct DiagnosticResult<T>(T Result, ImmutableArray<Diagnostic> Diagnostics) {
+
+#if SOURCE_UTILS_GENERATOR
+[IncludeFile]
+#endif
+internal record struct DiagnosticResult<T>(T Result, ImmutableArray<Diagnostic> Diagnostics) {
   public DiagnosticResult(T result) : this(result, []) {
     
   }

@@ -1,5 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
-using Retro.SourceGeneratorUtilities.Core.Types;
+using Retro.SourceGeneratorUtilities.Utilities.Types;
 using Retro.SourceGeneratorUtilities.Test.Utils;
 
 namespace Retro.SourceGeneratorUtilities.Test.Types;
@@ -34,7 +34,7 @@ public class TypeExtensionsTest {
                 ?.Construct(compilation.GetSpecialType(SpecialType.System_Int32))
         }
     };
-
+    
     Assert.Multiple(() => {
       foreach (var (type, symbol) in typeSymbols) {
         Assert.That(symbol?.IsSameType(type), Is.True,

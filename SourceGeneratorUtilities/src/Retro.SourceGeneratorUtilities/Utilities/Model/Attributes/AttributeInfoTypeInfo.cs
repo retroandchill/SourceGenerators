@@ -1,6 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
-
-namespace Retro.SourceGeneratorUtilities.Core.Model.Attributes;
+namespace Retro.SourceGeneratorUtilities.Utilities.Model.Attributes;
 
 /// <summary>
 /// Represents information about an attribute type.

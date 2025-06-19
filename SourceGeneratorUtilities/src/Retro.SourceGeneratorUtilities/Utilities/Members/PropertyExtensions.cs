@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
+#if SOURCE_UTILS_GENERATOR
+using RhoMicro.CodeAnalysis;
+#endif
 
-namespace Retro.SourceGeneratorUtilities.Core.Members;
+namespace Retro.SourceGeneratorUtilities.Utilities.Members;
 
 /// <summary>
 /// Provides extension methods for retrieving and analyzing the properties of a given type symbol within Roslyn's analysis framework.
@@ -11,7 +12,10 @@ namespace Retro.SourceGeneratorUtilities.Core.Members;
 /// This class is designed to simplify the process of obtaining metadata about properties declared in a type,
 /// including their name, type, accessibility, setter presence, and initializer expression, if any.
 /// </remarks>
-public static class PropertyExtensions {
+#if SOURCE_UTILS_GENERATOR
+[IncludeFile]
+#endif
+internal static class PropertyExtensions {
   /// <summary>
   /// Retrieves all public properties of the specified type symbol.
   /// </summary>

@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
+#if SOURCE_UTILS_GENERATOR
+using RhoMicro.CodeAnalysis;
+#endif
 
-namespace Retro.SourceGeneratorUtilities.Core.Types;
+namespace Retro.SourceGeneratorUtilities.Utilities.Types;
 
 /// <summary>
 /// Provides a mechanism to compare instances of <see cref="ITypeSymbol"/> for equality.
@@ -10,7 +12,10 @@ namespace Retro.SourceGeneratorUtilities.Core.Types;
 /// This comparer allows for the comparison of <see cref="ITypeSymbol"/> objects based on their
 /// underlying metadata representation, optionally including nullability considerations.
 /// </remarks>
-public class TypeSymbolEqualityComparer : IEqualityComparer<ITypeSymbol> {
+#if SOURCE_UTILS_GENERATOR
+[IncludeFile]
+#endif
+internal class TypeSymbolEqualityComparer : IEqualityComparer<ITypeSymbol> {
   private readonly IEqualityComparer<ISymbol> _equalityComparerImplementation;
 
   /// <summary>

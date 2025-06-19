@@ -1,12 +1,18 @@
 ﻿using System.Reflection;
 using Microsoft.CodeAnalysis;
+#if SOURCE_UTILS_GENERATOR
+using RhoMicro.CodeAnalysis;
+#endif
 
-namespace Retro.SourceGeneratorUtilities.Core.Types;
+namespace Retro.SourceGeneratorUtilities.Utilities.Types;
 
 /// <summary>
 /// Provides extension methods for operations related to Roslyn's <see cref="ITypeSymbol"/> and .NET <see cref="Type"/>.
 /// </summary>
-public static class TypeExtensions {
+#if SOURCE_UTILS_GENERATOR
+[IncludeFile]
+#endif
+internal static class TypeExtensions {
   /// <summary>
   /// Determines if the current <see cref="ITypeSymbol"/> represents the same type as the specified <see cref="Type"/>.
   /// </summary>

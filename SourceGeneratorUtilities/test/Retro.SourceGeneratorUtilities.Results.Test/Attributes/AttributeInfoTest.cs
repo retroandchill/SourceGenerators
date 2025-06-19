@@ -1,8 +1,8 @@
 ﻿using System.Collections.Immutable;
-using Retro.SourceGeneratorUtilities.Core.Attributes;
 using Retro.SourceGeneratorUtilities.Test.Utils;
+using Retro.SourceGeneratorUtilities.Utilities.Attributes;
 
-namespace Retro.SourceGeneratorUtilities.Test.Attributes;
+namespace Retro.SourceGeneratorUtilities.Results.Test.Attributes;
 
 [AttributeUsage(AttributeTargets.Class)]
 public class PropertyOnlyAttribute : Attribute {
@@ -37,7 +37,7 @@ public class AttributeInfoTest {
   [Test]
   public void TestValidateAttributeModel() {
     const string classDeclaration = """
-                                    using Retro.SourceGeneratorUtilities.Core.Test.Attributes;
+                                    using Retro.SourceGeneratorUtilities.Results.Test.Attributes;
                                     
                                     namespace TestNamespace;
 
@@ -62,7 +62,7 @@ public class AttributeInfoTest {
   [Test]
   public void TestValidateAttributeModelCollection() {
     const string classDeclaration = """
-                                    using Retro.SourceGeneratorUtilities.Core.Test.Attributes;
+                                    using Retro.SourceGeneratorUtilities.Results.Test.Attributes;
 
                                     namespace TestNamespace;
 

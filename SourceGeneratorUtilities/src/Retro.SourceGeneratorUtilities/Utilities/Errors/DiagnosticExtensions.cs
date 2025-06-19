@@ -1,12 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
+﻿using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
+#if SOURCE_UTILS_GENERATOR
+using RhoMicro.CodeAnalysis;
+#endif
 
-namespace Retro.SourceGeneratorUtilities.Core.Errors;
+namespace Retro.SourceGeneratorUtilities.Utilities.Errors;
 
-public static class DiagnosticExtensions {
+#if SOURCE_UTILS_GENERATOR
+[IncludeFile]
+#endif
+internal static class DiagnosticExtensions {
 
   public static DiagnosticResult<TResult> Select<TSource, TResult>(this DiagnosticResult<TSource> source,
                                                                    Func<TSource, TResult> mapper) {

@@ -1,17 +1,21 @@
-﻿using System;
-using System.Linq;
-using Microsoft.CodeAnalysis;
-using Retro.SourceGeneratorUtilities.Core.Model.Attributes;
-using Retro.SourceGeneratorUtilities.Core.Types;
+﻿using Microsoft.CodeAnalysis;
+using Retro.SourceGeneratorUtilities.Utilities.Model.Attributes;
+using Retro.SourceGeneratorUtilities.Utilities.Types;
+#if SOURCE_UTILS_GENERATOR
+using RhoMicro.CodeAnalysis;
+#endif
 
-namespace Retro.SourceGeneratorUtilities.Core.Attributes;
+namespace Retro.SourceGeneratorUtilities.Utilities.Attributes;
 
 /// <summary>
 /// Provides extension methods for working with <see cref="AttributeData"/> instances
 /// to facilitate processing and extracting attribute-related information in the context
 /// of source generation.
 /// </summary>
-public static class AttributeExtensions {
+#if SOURCE_UTILS_GENERATOR
+[IncludeFile]
+#endif
+internal static class AttributeExtensions {
   /// <summary>
   /// Determines whether the specified <see cref="ISymbol"/> has an attribute
   /// that matches the given <see cref="Type"/>.

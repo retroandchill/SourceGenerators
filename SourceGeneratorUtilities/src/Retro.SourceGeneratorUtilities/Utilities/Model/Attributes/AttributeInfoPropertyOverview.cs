@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-
-namespace Retro.SourceGeneratorUtilities.Core.Model.Attributes;
+namespace Retro.SourceGeneratorUtilities.Utilities.Model.Attributes;
 
 /// <summary>
 /// Represents an overview of a property within an attribute information model.

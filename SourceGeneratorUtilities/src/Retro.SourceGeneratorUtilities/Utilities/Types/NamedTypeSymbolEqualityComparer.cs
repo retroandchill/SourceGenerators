@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
+#if SOURCE_UTILS_GENERATOR
+using RhoMicro.CodeAnalysis;
+#endif
 
-namespace Retro.SourceGeneratorUtilities.Core.Types;
+namespace Retro.SourceGeneratorUtilities.Utilities.Types;
 
 /// <summary>
 /// Provides an implementation of <see cref="IEqualityComparer{T}"/> for comparing <see cref="INamedTypeSymbol"/> instances.
@@ -10,7 +12,10 @@ namespace Retro.SourceGeneratorUtilities.Core.Types;
 /// This class is specifically designed to compare named type symbols with optional support for nullability considerations.
 /// It uses a configurable internal <see cref="ISymbol"/> equality implementation to perform the comparisons.
 /// </remarks>
-public class NamedTypeSymbolEqualityComparer : IEqualityComparer<INamedTypeSymbol> {
+#if SOURCE_UTILS_GENERATOR
+[IncludeFile]
+#endif
+internal class NamedTypeSymbolEqualityComparer : IEqualityComparer<INamedTypeSymbol> {
   private readonly IEqualityComparer<ISymbol> _equalityComparerImplementation;
 
   /// <summary>

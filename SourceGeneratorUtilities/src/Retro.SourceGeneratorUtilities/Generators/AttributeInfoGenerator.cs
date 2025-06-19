@@ -4,9 +4,9 @@ using HandlebarsDotNet;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Retro.SourceGeneratorUtilities.Core.Attributes;
-using Retro.SourceGeneratorUtilities.Core.Errors;
 using Retro.SourceGeneratorUtilities.Formatters;
+using Retro.SourceGeneratorUtilities.Utilities.Attributes;
+using Retro.SourceGeneratorUtilities.Utilities.Errors;
 using Retro.SourceGeneratorUtilties.Generator.Properties;
 
 namespace Retro.SourceGeneratorUtilities.Generators;

@@ -1,6 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
-using Retro.SourceGeneratorUtilities.Core.Attributes;
 using Retro.SourceGeneratorUtilities.Generator.Sample.Attributes;
+using Retro.SourceGeneratorUtilities.Utilities.Attributes;
 namespace Retro.SourceGeneratorUtilities.Generator.Sample.Model;
 
 [AttributeInfoType<SingletonAttribute>]

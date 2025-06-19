@@ -1,8 +1,7 @@
 ﻿using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
-using Retro.SourceGeneratorUtilities.Core.Types;
-
-namespace Retro.SourceGeneratorUtilities.Core.Model.Attributes;
+using Retro.SourceGeneratorUtilities.Utilities.Types;
+namespace Retro.SourceGeneratorUtilities.Utilities.Model.Attributes;
 
 /// <summary>
 /// Represents an overview of the types related to a specific attribute and the model it applies to.
