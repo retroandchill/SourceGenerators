@@ -24,7 +24,7 @@ public static class {{Name}}Extensions {
     }
 
     {{#ChildClasses}}
-    if (!data.AttributeClass.IsOfType(typeof({{AttributeType}}))) {
+    if (!data.AttributeClass.IsAssignableFrom(typeof({{AttributeType}}))) {
       if ({{ModelType}}Extensions.TryGet{{ModelName}}(data, out var childInfo)) {
         info = childInfo;
         return true;
