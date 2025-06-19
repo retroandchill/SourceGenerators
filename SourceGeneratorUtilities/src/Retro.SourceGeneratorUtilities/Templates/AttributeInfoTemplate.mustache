@@ -24,7 +24,7 @@ public static class {{Name}}Extensions {
     }
 
     {{#ChildClasses}}
-    if (!data.AttributeClass.IsAssignableFrom(typeof({{AttributeType}}))) {
+    if (!data.AttributeClass.IsAssignableFrom(typeof({{AttributeTypeofName}}))) {
       if ({{ModelType}}Extensions.TryGet{{ModelName}}(data, out var childInfo)) {
         info = childInfo;
         return true;
@@ -35,7 +35,7 @@ public static class {{Name}}Extensions {
     }
     {{/ChildClasses}}
 
-    if (!data.AttributeClass.IsSameType(typeof({{AttributeSymbol}}))) {
+    if (!data.AttributeClass.IsSameType(typeof({{AttributeTypeofName}}))) {
       info = null;
       return false;
     }

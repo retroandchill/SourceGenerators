@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
+﻿using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Retro.SourceGeneratorUtilities.Core.Errors;
@@ -11,11 +8,25 @@ using Retro.SourceGeneratorUtilities.Core.Types;
 
 namespace Retro.SourceGeneratorUtilities.Core.Attributes;
 
+/// <summary>
+/// Provides extension methods for working with attribute information types.
+/// </summary>
 public static class AttributeInfoTypeExtensions {
+  /// <summary>
+  /// Retrieves attribute information type details from the given attribute data.
+  /// </summary>
+  /// <param name="attributeData">The attribute data to process in order to extract the information type details.</param>
+  /// <returns>The extracted <see cref="AttributeInfoTypeInfo"/> if successful; otherwise, throws an <see cref="InvalidOperationException"/>.</returns>
   public static AttributeInfoTypeInfo GetAttributeInfoTypeInfo(this AttributeData attributeData) {
     return attributeData.TryGetAttributeInfoTypeInfo(out var info) ? info : throw new InvalidOperationException("Invalid attribute type");
   }
-  
+
+  /// <summary>
+  /// Attempts to retrieve attribute information type details from the given attribute data.
+  /// </summary>
+  /// <param name="attributeData">The attribute data to process in order to extract the information type details.</param>
+  /// <param name="info">When this method returns, contains the extracted <see cref="AttributeInfoTypeInfo"/> if successful; otherwise, the default value.</param>
+  /// <returns><c>true</c> if the attribute information type details were successfully retrieved; otherwise, <c>false</c>.</returns>
   public static bool TryGetAttributeInfoTypeInfo(this AttributeData attributeData, out AttributeInfoTypeInfo info) {
     if (attributeData.AttributeClass is null) {
       info = default;
@@ -37,6 +48,11 @@ public static class AttributeInfoTypeExtensions {
     return true;
   }
 
+  /// <summary>
+  /// Retrieves a collection of attribute information type details from a sequence of attribute data.
+  /// </summary>
+  /// <param name="attributes">The collection of attribute data used to extract information type details.</param>
+  /// <returns>An enumerable collection of <see cref="AttributeInfoTypeInfo"/> containing the extracted information type details.</returns>
   public static IEnumerable<AttributeInfoTypeInfo> GetAttributeInfoTypeInfos(this IEnumerable<AttributeData> attributes) {
     return attributes
         .Select(a => a.TryGetAttributeInfoTypeInfo(out var info)
@@ -46,12 +62,19 @@ public static class AttributeInfoTypeExtensions {
         .Select(t => t.Info);
   }
 
+  /// <summary>
+  /// Extracts an overview of the attribute information type from the given named type symbol.
+  /// </summary>
+  /// <param name="typeSymbol">The named type symbol to extract attribute information from.</param>
+  /// <param name="possibleTypes">An immutable array containing the possible named type symbols to evaluate.</param>
+  /// <returns>A diagnostic result containing the overview of the attribute information type.</returns>
   public static DiagnosticResult<AttributeInfoTypeOverview> ExtractAttributeInfoTypeOverview(this INamedTypeSymbol typeSymbol, 
-                                                                           ImmutableArray<INamedTypeSymbol> possibleTypes) {
+                                                                                             ImmutableArray<INamedTypeSymbol> possibleTypes) {
     var attributeType = typeSymbol.GetAttributes()
         .GetAttributeInfoTypeInfos()
         .Select(x => x.Type)
         .OfType<INamedTypeSymbol>()
+        .Select(x => x.IsGenericType ? x.ConstructedFrom : x)
         .Single();
     
     var attributeConstructors = attributeType.Constructors;
@@ -60,17 +83,18 @@ public static class AttributeInfoTypeExtensions {
     var validatedConstructors = attributeConstructors
         .Select(attributeConstructor => attributeConstructor.FindMatchingConstructor(typeSymbol, modelConstructors))
         .Collect()
-        .SelectNonNull((m, i) => new AttributeInfoConstructorOverview {
-            Parameters = m.Parameters
-                .Select((p, j) => new AttributeInfoConstructorParamOverview(p) {
-                    Index = i,
-                    IsLast = j == m.Parameters.Length - 1
-                })
-                .ToImmutableList(),
-            IsLast = i == attributeConstructors.Length - 1
-        })
-        .ToImmutableArray();
-
+        .Select(r => r.Where(m => m is not null)
+                    .Select((m, i) => new AttributeInfoConstructorOverview {
+                        Parameters = m!.Parameters
+                            .Select((p, j) => new AttributeInfoConstructorParamOverview(p) {
+                                Index = i,
+                                IsLast = j == m.Parameters.Length - 1
+                            })
+                            .ToImmutableList(),
+                        IsLast = i == attributeConstructors.Length - 1
+                    })
+                    .ToImmutableArray());
+        
     var attributeProperties = attributeType.GetBaseTypeAndThis()
         .SelectMany(t => t.GetPublicProperties())
         .Where(t => t.SetMethod?.DeclaredAccessibility == Accessibility.Public)
@@ -83,15 +107,16 @@ public static class AttributeInfoTypeExtensions {
     var validatedProperties = attributeProperties
         .Select(property => property.FindMatchingProperty(typeSymbol, modelProperties))
         .Collect()
-        .SelectNonNull((p, i) => new AttributeInfoPropertyOverview(p) {
-            DefaultValue = p.DeclaringSyntaxReferences
-                .Select(s => s.GetSyntax())
-                .OfType<PropertyDeclarationSyntax>()
-                .Select(s => s.Initializer?.Value)
-                .FirstOrDefault(),
-            IsLast = i == attributeProperties.Length - 1
-        })
-        .ToImmutableArray();
+        .Select(r => r.Where(p => p is not null)
+                    .Select((p, i) => new AttributeInfoPropertyOverview(p!) {
+                        DefaultValue = p!.DeclaringSyntaxReferences
+                            .Select(s => s.GetSyntax())
+                            .OfType<PropertyDeclarationSyntax>()
+                            .Select(s => s.Initializer?.Value)
+                            .FirstOrDefault(),
+                        IsLast = i == attributeProperties.Length - 1
+                    })
+                    .ToImmutableArray());
 
     return validatedConstructors
         .Combine(validatedProperties,
@@ -105,6 +130,7 @@ public static class AttributeInfoTypeExtensions {
                                                                                  .GetAttributeInfoTypeInfos()
                                                                                  .Select(x => x.Type)
                                                                                  .OfType<INamedTypeSymbol>()
+                                                                                 .Select(x => x.IsGenericType ? x.ConstructedFrom : x)
                                                                                  .Single()))
                              .Where(d =>
                                         d.AttributeType.BaseType?.Equals(
@@ -118,25 +144,40 @@ public static class AttributeInfoTypeExtensions {
   private static DiagnosticResult<IMethodSymbol?> FindMatchingConstructor(this IMethodSymbol targetConstructor,
                                                                           INamedTypeSymbol source, 
                                                                           ImmutableArray<IMethodSymbol> modelConstructors) {
-
+    var genericParameterOffset = targetConstructor.ContainingType.IsGenericType ? targetConstructor.ContainingType.TypeArguments.Length : 0;
+    
     foreach (var modelConstructor in modelConstructors) {
-      if (modelConstructor.Parameters.Length != targetConstructor.Parameters.Length) {
+      if (modelConstructor.Parameters.Length != targetConstructor.Parameters.Length + genericParameterOffset) {
         continue;
       }
       
       var isMatch = true;
-      for (var i = 0; i < modelConstructor.Parameters.Length; i++) {
+      for (var i = 0; i < genericParameterOffset; i++) {
         var modelParameter = modelConstructor.Parameters[i];
-        var targetParameter = targetConstructor.Parameters[i];
+        if (modelParameter.Type.IsSameType<ITypeSymbol>()) continue;
+
+        isMatch = false;
+        break;
+      }
+
+      if (!isMatch) {
+        break;
+      }
+      
+      for (var i = genericParameterOffset; i < modelConstructor.Parameters.Length; i++) {
+        var modelParameter = modelConstructor.Parameters[i];
+        var targetParameter = targetConstructor.Parameters[i - genericParameterOffset];
 
         if (targetParameter.Type.IsSameType<Type>()) {
           if (modelParameter.Type.IsSameType<ITypeSymbol>()) continue;
           isMatch = false;
           break;
-        } else if (!targetParameter.Type.Equals(modelParameter.Type, SymbolEqualityComparer.Default)) {
-          isMatch = false;
-          break;
         }
+
+        if (targetParameter.Type.Equals(modelParameter.Type, SymbolEqualityComparer.Default)) continue;
+
+        isMatch = false;
+        break;
       }
 
       if (isMatch) {

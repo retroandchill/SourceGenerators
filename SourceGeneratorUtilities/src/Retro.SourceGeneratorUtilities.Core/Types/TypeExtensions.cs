@@ -369,4 +369,28 @@ public static class TypeExtensions {
       current = current.BaseType;
     }
   }
+
+  /// <summary>
+  /// Retrieves the name of the specified <see cref="INamedTypeSymbol"/> in a format compatible with C# typeof syntax.
+  /// </summary>
+  /// <param name="type">
+  /// The <see cref="INamedTypeSymbol"/> instance representing the type whose name is to be retrieved.
+  /// </param>
+  /// <returns>
+  /// A string representing the name of the type, formatted to include the correct generic argument placeholders if applicable.
+  /// </returns>
+  public static string GetTypeofName(this INamedTypeSymbol type) {
+    var baseName = type.ToDisplayString(new SymbolDisplayFormat(
+                                            globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+                                            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                                            genericsOptions: SymbolDisplayGenericsOptions.None
+                                        ));
+
+    if (!type.IsGenericType) {
+      return baseName;
+    }
+
+    var genericArguments = string.Concat(Enumerable.Repeat(",", type.TypeArguments.Length - 1));
+    return $"{baseName}<{genericArguments}>";
+  }
 }

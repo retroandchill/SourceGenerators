@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Retro.SourceGeneratorUtilities.Core.Types;
 
 namespace Retro.SourceGeneratorUtilities.Core.Model.Attributes;
 
@@ -30,5 +31,15 @@ public readonly record struct ChildAttributeTypeInfoOverview(INamedTypeSymbol Mo
   /// in the <see cref="ChildAttributeTypeInfoOverview"/> struct.
   /// </remarks>
   public string AttributeName => AttributeType.Name;
-  
+
+  /// <summary>
+  /// Gets the type name of the attribute in a format compatible with C# `typeof` syntax.
+  /// </summary>
+  /// <remarks>
+  /// This property retrieves the name of the attribute type within the context of the
+  /// <see cref="ChildAttributeTypeInfoOverview"/> struct, leveraging the <see cref="TypeExtensions.GetTypeofName"/> method
+  /// to format the type name appropriately for scenarios involving generic types.
+  /// </remarks>
+  public string AttributeTypeofName => AttributeType.GetTypeofName();
+
 }

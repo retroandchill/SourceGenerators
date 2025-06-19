@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
+using Retro.SourceGeneratorUtilities.Core.Types;
 
 namespace Retro.SourceGeneratorUtilities.Core.Model.Attributes;
 
@@ -35,6 +36,17 @@ public record AttributeInfoTypeOverview(INamedTypeSymbol ModelSymbol, INamedType
   /// shorthand for accessing the name of the associated model.
   /// </remarks>
   public string Name => ModelSymbol.Name;
+
+  /// <summary>
+  /// Gets the type name of the attribute as a string representation.
+  /// </summary>
+  /// <remarks>
+  /// This property utilizes the extension method <see cref="TypeExtensions.GetTypeofName"/>
+  /// to extract the type name of the attribute associated with the model.
+  /// It provides a formatted string suitable for source generation or analysis purposes.
+  /// </remarks>
+  public string AttributeTypeofName => AttributeSymbol.GetTypeofName();
+
 
   /// <summary>
   /// Gets the constructors available for the attribute type overview.

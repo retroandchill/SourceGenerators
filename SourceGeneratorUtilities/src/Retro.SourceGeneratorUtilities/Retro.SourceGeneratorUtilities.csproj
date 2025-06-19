@@ -22,7 +22,7 @@
 
   <ItemGroup>
     <PackageReference Include="Handlebars.Net" Version="2.1.6" GeneratePathProperty="true" PrivateAssets="all"/>
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0">
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="4.13.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

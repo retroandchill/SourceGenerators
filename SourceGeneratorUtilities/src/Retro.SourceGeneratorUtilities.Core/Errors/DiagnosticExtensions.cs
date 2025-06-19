@@ -33,8 +33,16 @@ public static class DiagnosticExtensions {
     return result with { Diagnostics = [..source.Diagnostics.Concat(other.Diagnostics).Concat(result.Diagnostics)] };
   }
 
-  public static IDiagnosticEnumerable<T> Collect<T>(this IEnumerable<DiagnosticResult<T>> source) {
-    return new BaseDiagnosticEnumerable<T>(source);
+  public static DiagnosticResult<ImmutableArray<T>> Collect<T>(this IEnumerable<DiagnosticResult<T>> source) {
+    var resultBuilder = ImmutableArray.CreateBuilder<T>();
+    var diagnosticsBuilder = ImmutableArray.CreateBuilder<Diagnostic>();
+    
+    foreach (var item in source) {
+      resultBuilder.Add(item.Result);
+      diagnosticsBuilder.AddRange(item.Diagnostics);
+    }
+    
+    return new DiagnosticResult<ImmutableArray<T>>(resultBuilder.ToImmutable(), diagnosticsBuilder.ToImmutable());
   }
 
   public static bool ReportDiagnostics<T>(this SourceProductionContext sourceProductionContext,

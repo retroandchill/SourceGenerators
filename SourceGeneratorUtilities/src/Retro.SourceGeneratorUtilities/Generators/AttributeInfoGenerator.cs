@@ -43,7 +43,7 @@ public class AttributeInfoGenerator : IIncrementalGenerator {
       var template = handlebars.Compile(SourceTemplates.AttributeInfoTemplate);
 
       var templateResult = template(templateParams);
-      context.AddSource($"{templateParams.Name}Info.g.cs", templateResult);
+      context.AddSource($"{templateParams.Name}.g.cs", templateResult);
     }
   }
 }

@@ -1,6 +1,4 @@
 ﻿using Microsoft.CodeAnalysis;
-using Retro.SourceGeneratorUtilities.Core.Attributes;
-using Retro.SourceGeneratorUtilities.Generator.Sample.Model;
 
 namespace Retro.SourceGeneratorUtilities.Generator.Sample;
 
