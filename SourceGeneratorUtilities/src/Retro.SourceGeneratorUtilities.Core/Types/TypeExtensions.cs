@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Reflection;
+﻿using System.Reflection;
 using Microsoft.CodeAnalysis;
 
 namespace Retro.SourceGeneratorUtilities.Core.Types;
@@ -12,81 +8,61 @@ namespace Retro.SourceGeneratorUtilities.Core.Types;
 /// </summary>
 public static class TypeExtensions {
   /// <summary>
-  /// Generates a string representation of the specified <see cref="Type"/> that accurately reflects its structure,
-  /// including its namespace, generic arguments, or array type if applicable.
+  /// Determines if the current <see cref="ITypeSymbol"/> represents the same type as the specified <see cref="Type"/>.
   /// </summary>
-  /// <param name="type">The type whose display string will be generated.</param>
+  /// <param name="type">The current type symbol to check.</param>
+  /// <param name="targetType">The target .NET type to compare against.</param>
   /// <returns>
-  /// A string representation of the type, including appropriate formatting for generic and array types.
-  /// For primitive types, the C# type name is returned (e.g., "int" for <see cref="Int32"/>).
+  /// True if the current type symbol represents the same type as the specified target type; otherwise, false.
   /// </returns>
-  public static string ToDisplayString(this Type type) {
-    if (type.TryGetSpecialTypeName(out var specialTypeName)) {
-      return specialTypeName;
-    }
-
-    if (type.IsArray) {
-      return $"{type.GetElementType()!.ToDisplayString()}[]";
-    }
-
-    if (!type.IsGenericType) {
-      return type.FullName ?? type.Name;
-    }
-
-    if (type is not { IsNested: true, DeclaringType: not null }) {
-      return $"{type.Namespace}.{type.GetSimpleGenericTypeName()}";
-    }
-
-    var declaringType = type.DeclaringType.ToDisplayString();
-    var nestedTypeName = type.GetSimpleGenericTypeName();
-    return $"{declaringType}.{nestedTypeName}";
-  }
-
-  private static string GetSimpleGenericTypeName(this Type type) {
-    if (!type.IsGenericType) {
-      return type.Name;
-    }
-
-    var baseName = type.Name;
-    var backtickIndex = baseName.IndexOf('`');
-    if (backtickIndex > 0) {
-      baseName = baseName.Substring(0, backtickIndex);
-    }
-
-    // Build the generic parameters part
-    var genericArgs = type.GetGenericArguments();
-
-    // For nested types in generic types, we need to skip the parent's type parameters
-    if (type.IsNested && (type.DeclaringType?.IsGenericType ?? false)) {
-      var parentTypeParamCount = type.DeclaringType.GetGenericArguments().Length;
-      genericArgs = genericArgs.Skip(parentTypeParamCount).ToArray();
-    }
-
-    var genericParams = string.Join(",", genericArgs.Select(ToDisplayString));
-    return $"{baseName}<{genericParams}>";
-  }
-
-  private static bool TryGetSpecialTypeName(this Type type, [NotNullWhen(true)] out string? specialTypeName) {
-    specialTypeName = type switch {
-        not null when type == typeof(void) => "void",
-        not null when type == typeof(bool) => "bool",
-        not null when type == typeof(byte) => "byte",
-        not null when type == typeof(sbyte) => "sbyte",
-        not null when type == typeof(char) => "char",
-        not null when type == typeof(decimal) => "decimal",
-        not null when type == typeof(double) => "double",
-        not null when type == typeof(float) => "float",
-        not null when type == typeof(int) => "int",
-        not null when type == typeof(uint) => "uint",
-        not null when type == typeof(long) => "long",
-        not null when type == typeof(ulong) => "ulong",
-        not null when type == typeof(short) => "short",
-        not null when type == typeof(ushort) => "ushort",
-        not null when type == typeof(string) => "string",
-        not null when type == typeof(object) => "object",
-        _ => null
+  public static bool IsSameType(this ITypeSymbol type, Type targetType) {
+    return type switch {
+        INamedTypeSymbol namedTypeSymbol => namedTypeSymbol.IsSameType(targetType),
+        IArrayTypeSymbol arrayTypeSymbol => arrayTypeSymbol.IsSameType(targetType),
+        IPointerTypeSymbol pointerTypeSymbol => pointerTypeSymbol.IsSameType(targetType),
+        ITypeParameterSymbol typeParameterSymbol => typeParameterSymbol.IsSameType(targetType),
+        _ => throw new NotSupportedException($"Type {type.GetType()} is not supported")
     };
-    return specialTypeName is not null;
+  }
+
+  /// <summary>
+  /// Determines if the current <see cref="ITypeSymbol"/> represents the same type as the specified <see cref="Type"/>.
+  /// </summary>
+  /// <param name="type">The current type symbol to compare.</param>
+  /// <param name="targetType">The target .NET type to compare against.</param>
+  /// <returns>
+  /// True if the current type symbol represents the same type as the specified target type; otherwise, false.
+  /// </returns>
+  public static bool IsSameType(this INamedTypeSymbol type, Type targetType) {
+    if (type.MetadataName != targetType.Name) {
+      return false;
+    }
+
+    if (type.IsGenericType) {
+      if (!targetType.IsGenericType) {
+        return false;
+      }
+
+      var genericArguments = targetType.GetGenericArguments();
+      if (type.TypeArguments.Length != genericArguments.Length) {
+        return false;
+      }
+
+      for (var i = 0; i < genericArguments.Length; i++) {
+        var parameterSymbol = type.TypeArguments[i];
+        var targetTypeParameter = genericArguments[i];
+
+        if (!parameterSymbol.IsSameType(targetTypeParameter)) {
+          return false;
+        }
+      }
+    }
+
+    if (type.ContainingType is not null) {
+      return targetType.IsNested && type.ContainingType.IsSameType(targetType.DeclaringType!);
+    }
+    
+    return targetType.Namespace == type.ContainingNamespace.ToDisplayString();
   }
 
   /// <summary>
@@ -97,8 +73,32 @@ public static class TypeExtensions {
   /// <returns>
   /// True if the current type symbol represents the same type as the specified target type; otherwise, false.
   /// </returns>
-  public static bool IsSameType(this ITypeSymbol type, Type targetType) {
-    return type.WithNullableAnnotation(NullableAnnotation.NotAnnotated).ToDisplayString() == targetType.ToDisplayString();
+  public static bool IsSameType(this IArrayTypeSymbol type, Type targetType) {
+    return targetType.IsArray && type.ElementType.IsSameType(targetType.GetElementType()!);
+  }
+
+  /// <summary>
+  /// Determines if the current <see cref="ITypeSymbol"/> represents the same type as the specified <see cref="Type"/>.
+  /// </summary>
+  /// <param name="type">The current type symbol to check.</param>
+  /// <param name="targetType">The target .NET type to compare against.</param>
+  /// <returns>
+  /// True if the current type symbol represents the same type as the specified target type; otherwise, false.
+  /// </returns>
+  public static bool IsSameType(this IPointerTypeSymbol type, Type targetType) {
+    return targetType.IsPointer && type.PointedAtType.IsSameType(targetType.GetElementType()!);
+  }
+
+  /// <summary>
+  /// Determines if the current <see cref="ITypeSymbol"/> represents the same type as the specified <see cref="Type"/>.
+  /// </summary>
+  /// <param name="type">The current type symbol to check.</param>
+  /// <param name="targetType">The target .NET type to compare against.</param>
+  /// <returns>
+  /// True if the current type symbol represents the same type as the specified target type; otherwise, false.
+  /// </returns>
+  public static bool IsSameType(this ITypeParameterSymbol type, Type targetType) {
+    return targetType.IsGenericParameter && type.MetadataName == targetType.Name && type.DeclaringType!.IsSameTypeNoGenericCheck(targetType.DeclaringType!);
   }
 
   /// <summary>
@@ -112,112 +112,164 @@ public static class TypeExtensions {
   public static bool IsSameType<T>(this ITypeSymbol type) {
     return type.IsSameType(typeof(T));
   }
-
-  /// <summary>
-  /// Checks if the type represented by the current <see cref="ITypeSymbol"/> is of the specified type <typeparamref name="T"/>.
-  /// </summary>
-  /// <typeparam name="T">The type to compare against.</typeparam>
-  /// <param name="type">The current type symbol to check.</param>
-  /// <returns>
-  /// True if the current type symbol is of the specified type; otherwise, false.
-  /// </returns>
-  public static bool IsOfType<T>(this ITypeSymbol type) {
-    return type.IsOfType(typeof(T));
+  
+  private static bool IsSameTypeNoGenericCheck(this INamedTypeSymbol type, Type targetType) {
+    return type.MetadataName == targetType.Name && targetType.Namespace == type.ContainingNamespace.ToDisplayString();
   }
 
+
   /// <summary>
-  /// Determines whether the specified <see cref="ITypeSymbol"/> instance represents the same type as,
-  /// inherits from, or implements the specified .NET <see cref="Type"/>.
+  /// Determines whether the specified type is assignable from the current <see cref="ITypeSymbol"/>.
   /// </summary>
-  /// <param name="type">The <see cref="ITypeSymbol"/> to be checked.</param>
-  /// <param name="otherType">The target <see cref="Type"/> to compare against.</param>
+  /// <param name="type">The current type symbol to check.</param>
+  /// <typeparam name="T">The .NET type to compare against as the target type.</typeparam>
   /// <returns>
-  /// True if the <see cref="ITypeSymbol"/> is of the same type, inherits from, or implements the target <see cref="Type"/>.
-  /// Otherwise, false.
+  /// True if the specified type is assignable from the current type symbol; otherwise, false.
   /// </returns>
-  public static bool IsOfType(this ITypeSymbol type, Type otherType) {
+  public static bool IsAssignableFrom<T>(this ITypeSymbol type) {
+    return type.IsAssignableFrom(typeof(T));
+  }
+
+
+  /// <summary>
+  /// Determines whether the current <see cref="ITypeSymbol"/> can be assigned from the specified <see cref="Type"/>.
+  /// </summary>
+  /// <remarks>
+  /// In the case of open generics, if the other type is open then it will match on then it will match on the generic
+  /// definition regardless of type parameters.
+  /// </remarks>
+  /// <param name="type">The current type symbol representing the type to check.</param>
+  /// <param name="otherType">The target .NET type to determine assignability from.</param>
+  /// <returns>
+  /// True if the current type symbol can be assigned from the specified target type; otherwise, false.
+  /// </returns>
+  public static bool IsAssignableFrom(this ITypeSymbol type, Type otherType) {
     if (type.IsSameType(otherType)) {
       return true;
     }
 
-    if (type is INamedTypeSymbol { IsGenericType: true } namedType && otherType is { IsGenericType: true, DeclaringType: not null } && namedType.ConstructedFrom.IsSameType(otherType.DeclaringType)) {
-      var typeArguments = namedType.TypeArguments;
-      var otherArguments = otherType.GetGenericArguments();
-      var declaringArguments = otherType.DeclaringType.GetGenericArguments();
-        
-      if (typeArguments.Length != otherArguments.Length || typeArguments.Length != declaringArguments.Length) {
-        return false;
-      }
-
-      for (var i = 0; i < typeArguments.Length; i++) {
-        var typeArgument = typeArguments[i];
-        var otherArgument = otherArguments[i];
-        var declaringArgument = declaringArguments[i];
-
-        if (otherArgument.IsGenericParameter) {
-          continue;
-        }
-          
-        var genericParameterAttributes = declaringArgument.GenericParameterAttributes;
-        var isCovariant = (genericParameterAttributes & GenericParameterAttributes.Covariant) != 0;
-        var isContravariant = (genericParameterAttributes & GenericParameterAttributes.Contravariant) != 0;
-
-        if (isCovariant) {
-          if (!typeArgument.IsOfType(otherArgument)) {
-            return false;
-          }
-        }
-        else if (isContravariant) {
-          if (!otherArgument.IsOfType(typeArgument)) {
-            return false;
-          }
-        }
-        else if (!typeArgument.IsSameType(otherArgument)) {
-          return false;
-        }
-
-      }
+    if (type is INamedTypeSymbol { IsGenericType: true } namedType && otherType is { IsGenericType: true} && namedType.ConstructedFrom.IsSameType(otherType.GetGenericTypeDefinition())) {
+      return ValidateGenericTypeArguments(otherType, namedType);
     }
 
-
     if (otherType.IsClass && type is { TypeKind: TypeKind.Class, BaseType: not null }) {
-      return type.BaseType.IsOfType(otherType);
+      return type.BaseType.IsAssignableFrom(otherType);
     }
 
     if (otherType.IsInterface && type.TypeKind is TypeKind.Interface or TypeKind.Class or TypeKind.Struct) {
       return type.AllInterfaces
-          .Any(i => i.IsOfType(otherType));
+          .Any(i => i.IsAssignableFrom(otherType));
     }
 
     return false;
   }
 
   /// <summary>
-  /// Determines if the specified <see cref="Type"/> instance is of the same type as or assignable to the provided <see cref="ITypeSymbol"/>.
+  /// Checks if the type represented by the current <see cref="ITypeSymbol"/> is of the specified type represented by another <see cref="ITypeSymbol"/>.
   /// </summary>
-  /// <param name="type">The <see cref="Type"/> instance to check.</param>
-  /// <param name="otherType">The <see cref="ITypeSymbol"/> to compare against.</param>
+  /// <param name="type">The current type symbol to check.</param>
+  /// <param name="other">The type symbol to compare against.</param>
   /// <returns>
-  /// A boolean value indicating whether the <see cref="Type"/> is of the same type as the <see cref="ITypeSymbol"/>
-  /// or assignable to it, considering generic type compatibility and inheritance hierarchy.
+  /// True if the current type symbol is of the specified type; otherwise, false.
   /// </returns>
-  public static bool IsOfType(this Type type, ITypeSymbol otherType) {
-    if (otherType.IsSameType(type)) {
+  public static bool IsAssignableFrom(this ITypeSymbol type, ITypeSymbol other) {
+    if (SymbolEqualityComparer.Default.Equals(type, other)) {
       return true;
     }
 
-    if (otherType is not INamedTypeSymbol { IsGenericType: true } namedType ||
-        type is not { IsGenericType: true, DeclaringType: not null } ||
-        !namedType.ConstructedFrom.IsSameType(type.DeclaringType)) {
-      return otherType switch {
-          { TypeKind: TypeKind.Class } when type is { IsClass: true, BaseType: not null } =>
-              type.BaseType.IsOfType(otherType),
-          { TypeKind: TypeKind.Interface } => type.GetInterfaces().Any(i => i.IsOfType(otherType)),
+    return other.TypeKind switch {
+        TypeKind.Class when type is { TypeKind: TypeKind.Class, BaseType: not null } => type.BaseType.IsAssignableFrom(other),
+        TypeKind.Interface when type.TypeKind is TypeKind.Interface or TypeKind.Class => type.Interfaces
+            .Any(i => i.IsAssignableFrom(other)),
+        _ => false
+    };
+  }
+
+  /// <summary>
+  /// Determines if the current <see cref="ITypeSymbol"/> can be assigned to the specified generic type <typeparamref name="T"/>.
+  /// </summary>
+  /// <typeparam name="T">The target type to evaluate for assignment compatibility.</typeparam>
+  /// <param name="type">The current type symbol to check.</param>
+  /// <returns>
+  /// True if the current type symbol can be assigned to the specified target type; otherwise, false.
+  /// </returns>
+  public static bool IsAssignableTo<T>(this ITypeSymbol type) {
+    return type.IsAssignableTo(typeof(T));
+  }
+
+
+  /// <summary>
+  /// Determines whether the current <see cref="ITypeSymbol"/> can be assigned to the specified .NET <see cref="Type"/>.
+  /// </summary>
+  /// <param name="type">The current type symbol to check.</param>
+  /// <param name="otherType">The target .NET type to which assignment is verified.</param>
+  /// <returns>
+  /// True if the current type symbol can be assigned to the specified target type; otherwise, false.
+  /// </returns> 
+  /// <remarks>
+  /// In the case of open generics, if the other type is open then it will match on then it will match on the generic
+  /// definition regardless of type parameters.
+  /// </remarks>
+  public static bool IsAssignableTo(this ITypeSymbol type, Type otherType) {
+    if (type.IsSameType(otherType)) {
+      return true;
+    }
+
+    if (type is not INamedTypeSymbol { IsGenericType: true } namedType ||
+        otherType is not { IsGenericType: true } ||
+        !namedType.ConstructedFrom.IsSameType(otherType.GetGenericTypeDefinition())) {
+      return type switch {
+          { TypeKind: TypeKind.Class } when otherType is { IsClass: true, BaseType: not null } =>
+              type.IsAssignableTo(otherType.BaseType),
+          { TypeKind: TypeKind.Interface } => otherType.GetInterfaces().Any(type.IsAssignableTo),
           _ => false
       };
     }
 
-    var typeArguments = type.GetGenericArguments();
+    return ValidateGenericTypeArguments(type, otherType, namedType);
+  }
+
+
+  private static bool ValidateGenericTypeArguments(Type otherType, INamedTypeSymbol namedType) {
+    var typeArguments = namedType.TypeArguments;
+    var otherArguments = otherType.GetGenericArguments();
+    var declaringArguments = otherType.GetGenericTypeDefinition().GetGenericArguments();
+        
+    if (typeArguments.Length != otherArguments.Length || typeArguments.Length != declaringArguments.Length) {
+      return false;
+    }
+
+    for (var i = 0; i < typeArguments.Length; i++) {
+      var typeArgument = typeArguments[i];
+      var otherArgument = otherArguments[i];
+      var declaringArgument = declaringArguments[i];
+
+      if (otherArgument.IsGenericParameter) {
+        continue;
+      }
+          
+      var genericParameterAttributes = declaringArgument.GenericParameterAttributes;
+      if ((genericParameterAttributes & GenericParameterAttributes.Covariant) != 0) {
+        if (!typeArgument.IsAssignableFrom(otherArgument)) {
+          return false;
+        }
+      }
+      else if ((genericParameterAttributes & GenericParameterAttributes.Contravariant) != 0) {
+        if (!typeArgument.IsAssignableTo(otherArgument)) {
+          return false;
+        }
+      }
+      else if (!typeArgument.IsSameType(otherArgument)) {
+        return false;
+      }
+
+    }
+
+    return true;
+  }
+
+  private static bool ValidateGenericTypeArguments(ITypeSymbol type, Type otherType, INamedTypeSymbol namedType) {
+    var typeArguments = otherType.GetGenericArguments();
     var otherArguments = namedType.TypeArguments;
     var declaringArguments = namedType.TypeParameters;
         
@@ -233,51 +285,18 @@ public static class TypeExtensions {
       if (otherArgument is ITypeParameterSymbol) {
         continue;
       }
-        
-      var isCovariant = declaringArgument.Variance == VarianceKind.Out;
-      var isContravariant = declaringArgument.Variance == VarianceKind.In;
-
-      if (isCovariant) {
-        if (!typeArgument.IsOfType(otherArgument)) {
-          return false;
-        }
-      }
-      else if (isContravariant) {
-        if (!otherArgument.IsOfType(typeArgument)) {
-          return false;
-        }
-      }
-      else if (!otherArgument.IsSameType(typeArgument)) {
-        return false;
-      }
-
+      
+      return declaringArgument.Variance switch {
+          VarianceKind.Out => otherArgument.IsAssignableTo(typeArgument),
+          VarianceKind.In => otherArgument.IsAssignableFrom(typeArgument),
+          _ => otherArgument.IsSameType(typeArgument)
+      };
     }
 
-    return otherType switch {
-        { TypeKind: TypeKind.Class } when type is { IsClass: true, BaseType: not null } =>
-            type.BaseType.IsOfType(otherType),
-        { TypeKind: TypeKind.Interface } => type.GetInterfaces().Any(i => i.IsOfType(otherType)),
-        _ => false
-    };
-  }
-
-  /// <summary>
-  /// Checks if the type represented by the current <see cref="ITypeSymbol"/> is of the specified type represented by another <see cref="ITypeSymbol"/>.
-  /// </summary>
-  /// <param name="type">The current type symbol to check.</param>
-  /// <param name="other">The type symbol to compare against.</param>
-  /// <returns>
-  /// True if the current type symbol is of the specified type; otherwise, false.
-  /// </returns>
-  public static bool IsOfType(this ITypeSymbol type, ITypeSymbol other) {
-    if (SymbolEqualityComparer.Default.Equals(type, other)) {
-      return true;
-    }
-
-    return other.TypeKind switch {
-        TypeKind.Class when type is { TypeKind: TypeKind.Class, BaseType: not null } => type.BaseType.IsOfType(other),
-        TypeKind.Interface when type.TypeKind is TypeKind.Interface or TypeKind.Class => type.Interfaces
-            .Any(i => i.IsOfType(other)),
+    return type switch {
+        { TypeKind: TypeKind.Class } when otherType is { IsClass: true, BaseType: not null } =>
+            type.IsAssignableTo(otherType.BaseType),
+        { TypeKind: TypeKind.Interface } => otherType.GetInterfaces().Any(type.IsAssignableTo),
         _ => false
     };
   }

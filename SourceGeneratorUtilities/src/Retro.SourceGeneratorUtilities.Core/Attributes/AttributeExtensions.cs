@@ -27,7 +27,7 @@ public static class AttributeExtensions {
   /// </returns>
   public static bool HasAttribute(this ISymbol symbol, Type attributeType) {
     return symbol.GetAttributes()
-        .Any(a => a.AttributeClass?.IsOfType(attributeType) ?? false);
+        .Any(a => a.AttributeClass?.IsAssignableFrom(attributeType) ?? false);
   }
 
   /// <summary>
@@ -81,7 +81,7 @@ public static class AttributeExtensions {
 
   public static AttributeUsageInfo GetUsageInfo(this AttributeData attributeData) {
     var attributeUsage = attributeData.AttributeClass?.GetAttributes()
-        .SingleOrDefault(a => a.AttributeClass?.IsOfType<AttributeUsageAttribute>() ?? false);
+        .SingleOrDefault(a => a.AttributeClass?.IsAssignableFrom<AttributeUsageAttribute>() ?? false);
 
     if (attributeUsage is null) {
       return new AttributeUsageInfo();
