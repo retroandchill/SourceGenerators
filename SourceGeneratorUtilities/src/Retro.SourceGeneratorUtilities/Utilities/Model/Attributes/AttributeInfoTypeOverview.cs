@@ -46,6 +46,16 @@ public record AttributeInfoTypeOverview(INamedTypeSymbol ModelSymbol, INamedType
   /// </remarks>
   public string AttributeTypeofName => AttributeSymbol.GetTypeofName();
 
+  /// <summary>
+  /// Indicates whether the model type represented by this instance is a value type.
+  /// </summary>
+  /// <remarks>
+  /// This property reflects the <see cref="INamedTypeSymbol.IsValueType"/> property of the model symbol.
+  /// It allows determination of whether the model type is a value type, such as a struct,
+  /// as opposed to a reference type like a class or an interface.
+  /// </remarks>
+  public bool IsValueType => ModelSymbol.IsValueType;
+
 
   /// <summary>
   /// Gets the constructors available for the attribute type overview.
