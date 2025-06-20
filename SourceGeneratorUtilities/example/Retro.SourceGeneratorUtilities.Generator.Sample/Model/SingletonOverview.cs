@@ -7,6 +7,4 @@ namespace Retro.SourceGeneratorUtilities.Generator.Sample.Model;
 public record SingletonOverview(ITypeSymbol Type) : DependencyOverview(Type, ServiceScope.Singleton);
 
 [AttributeInfoType(typeof(SingletonAttribute<>))]
-public record SingletonOneParamOverview(ITypeSymbol Type) : SingletonOverview(Type) {
-  
-}
+public record SingletonOneParamOverview(ITypeSymbol Type) : SingletonOverview(Type);

@@ -107,9 +107,11 @@ public class AttributeInfoTypeExtensionsTest {
     // Act
     var result = attributeData.TryGetAttributeInfoTypeInfo(out var info);
 
-    // Assert
-    Assert.That(result, Is.False);
-    Assert.That(info, Is.EqualTo(default(AttributeInfoTypeInfo)));
+    Assert.Multiple(() => {
+      // Assert
+      Assert.That(result, Is.False);
+      Assert.That(info, Is.EqualTo(default(AttributeInfoTypeInfo)));
+    });
   }
 
   [Test]

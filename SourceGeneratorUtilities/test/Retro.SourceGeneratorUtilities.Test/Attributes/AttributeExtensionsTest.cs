@@ -56,13 +56,15 @@ public class AttributeExtensionsTest {
     var classWithAttribute = compilation.GetTypeSymbol("TestNamespace.ClassWithAttribute");
     var classWithoutAttribute = compilation.GetTypeSymbol("TestNamespace.ClassWithoutAttribute");
 
-    // Act & Assert
-    // Note: This test is limited as we can't actually use the type TestAttribute in the generic parameter
-    // since it's dynamically created in the compilation, so we're testing with a known attribute type
-    Assert.That(classWithAttribute.HasAttribute<Attribute>(), Is.True,
-                "Class with attribute should return true");
-    Assert.That(classWithoutAttribute.HasAttribute<Attribute>(), Is.False,
-                "Class without attribute should return false");
+    Assert.Multiple(() => {
+      // Act & Assert
+      // Note: This test is limited as we can't actually use the type TestAttribute in the generic parameter
+      // since it's dynamically created in the compilation, so we're testing with a known attribute type
+      Assert.That(classWithAttribute.HasAttribute<Attribute>(), Is.True,
+                  "Class with attribute should return true");
+      Assert.That(classWithoutAttribute.HasAttribute<Attribute>(), Is.False,
+                  "Class without attribute should return false");
+    });
   }
 
   [Test]
