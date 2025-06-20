@@ -42,7 +42,7 @@ public static class {{Name}}Extensions {
 
     {{#Constructors}}
     if (data.HasMatchingConstructor({{#Parameters}}typeof({{NonNullableType}}){{^IsLast}}, {{/IsLast}}{{/Parameters}})) {
-      var namedArguments = data.NamedArguments.ToDictionary();
+      var namedArguments = data.NamedArguments.ToDictionary(p => p.Key, p => p.Value);
       info = new {{../Name}}({{#Parameters}}data.ConstructorArguments[{{Index}}].GetTypedValue<{{Type}}>(){{^IsLast}}, {{/IsLast}}{{/Parameters}}) {
         {{#each ../Properties}}
           {{Name}} = namedArguments.TryGetValue("{{Name}}", out var value{{Name}}) ? value{{Name}}.GetTypedValue<{{Type}}>() : {{#HasDefaultValue}}{{DefaultValue}}{{/HasDefaultValue}}{{^HasDefaultValue}}default{{/HasDefaultValue}},
