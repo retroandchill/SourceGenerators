@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Collections.Immutable;
+using System.Reflection;
 using Microsoft.CodeAnalysis;
 #if SOURCE_UTILS_GENERATOR
 using RhoMicro.CodeAnalysis;
@@ -13,6 +14,7 @@ namespace Retro.SourceGeneratorUtilities.Utilities.Types;
 [IncludeFile]
 #endif
 internal static class TypeExtensions {
+  private const string TypeIsNull = "Type is null";
   /// <summary>
   /// Determines if the current <see cref="ITypeSymbol"/> represents the same type as the specified <see cref="Type"/>.
   /// </summary>
@@ -80,7 +82,7 @@ internal static class TypeExtensions {
   /// True if the current type symbol represents the same type as the specified target type; otherwise, false.
   /// </returns>
   public static bool IsSameType(this IArrayTypeSymbol type, Type targetType) {
-    return targetType.IsArray && type.ElementType.IsSameType(targetType.GetElementType()!);
+    return targetType.IsArray && targetType.GetArrayRank() == type.Rank && type.ElementType.IsSameType(targetType.GetElementType()!);
   }
 
   /// <summary>
@@ -132,8 +134,8 @@ internal static class TypeExtensions {
   /// <returns>
   /// True if the specified type is assignable from the current type symbol; otherwise, false.
   /// </returns>
-  public static bool IsAssignableFrom<T>(this ITypeSymbol type) {
-    return type.IsAssignableFrom(typeof(T));
+  public static bool IsAssignableTo<T>(this ITypeSymbol type) {
+    return type.IsAssignableTo(typeof(T));
   }
 
 
@@ -149,7 +151,7 @@ internal static class TypeExtensions {
   /// <returns>
   /// True if the current type symbol can be assigned from the specified target type; otherwise, false.
   /// </returns>
-  public static bool IsAssignableFrom(this ITypeSymbol type, Type otherType) {
+  public static bool IsAssignableTo(this ITypeSymbol type, Type otherType) {
     if (type.IsSameType(otherType)) {
       return true;
     }
@@ -159,12 +161,12 @@ internal static class TypeExtensions {
     }
 
     if (otherType.IsClass && type is { TypeKind: TypeKind.Class, BaseType: not null }) {
-      return type.BaseType.IsAssignableFrom(otherType);
+      return type.BaseType.IsAssignableTo(otherType);
     }
 
     if (otherType.IsInterface && type.TypeKind is TypeKind.Interface or TypeKind.Class or TypeKind.Struct) {
       return type.AllInterfaces
-          .Any(i => i.IsAssignableFrom(otherType));
+          .Any(i => i.IsAssignableTo(otherType));
     }
 
     return false;
@@ -178,15 +180,15 @@ internal static class TypeExtensions {
   /// <returns>
   /// True if the current type symbol is of the specified type; otherwise, false.
   /// </returns>
-  public static bool IsAssignableFrom(this ITypeSymbol type, ITypeSymbol other) {
+  public static bool IsAssignableTo(this ITypeSymbol type, ITypeSymbol other) {
     if (SymbolEqualityComparer.Default.Equals(type, other)) {
       return true;
     }
 
     return other.TypeKind switch {
-        TypeKind.Class when type is { TypeKind: TypeKind.Class, BaseType: not null } => type.BaseType.IsAssignableFrom(other),
+        TypeKind.Class when type is { TypeKind: TypeKind.Class, BaseType: not null } => type.BaseType.IsAssignableTo(other),
         TypeKind.Interface when type.TypeKind is TypeKind.Interface or TypeKind.Class => type.Interfaces
-            .Any(i => i.IsAssignableFrom(other)),
+            .Any(i => i.IsAssignableTo(other)),
         _ => false
     };
   }
@@ -199,8 +201,8 @@ internal static class TypeExtensions {
   /// <returns>
   /// True if the current type symbol can be assigned to the specified target type; otherwise, false.
   /// </returns>
-  public static bool IsAssignableTo<T>(this ITypeSymbol type) {
-    return type.IsAssignableTo(typeof(T));
+  public static bool IsAssignableFrom<T>(this ITypeSymbol type) {
+    return type.IsAssignableFrom(typeof(T));
   }
 
 
@@ -216,7 +218,7 @@ internal static class TypeExtensions {
   /// In the case of open generics, if the other type is open then it will match on then it will match on the generic
   /// definition regardless of type parameters.
   /// </remarks>
-  public static bool IsAssignableTo(this ITypeSymbol type, Type otherType) {
+  public static bool IsAssignableFrom(this ITypeSymbol type, Type otherType) {
     if (type.IsSameType(otherType)) {
       return true;
     }
@@ -226,8 +228,8 @@ internal static class TypeExtensions {
         !namedType.ConstructedFrom.IsSameType(otherType.GetGenericTypeDefinition())) {
       return type switch {
           { TypeKind: TypeKind.Class } when otherType is { IsClass: true, BaseType: not null } =>
-              type.IsAssignableTo(otherType.BaseType),
-          { TypeKind: TypeKind.Interface } => otherType.GetInterfaces().Any(type.IsAssignableTo),
+              type.IsAssignableFrom(otherType.BaseType),
+          { TypeKind: TypeKind.Interface } => otherType.GetInterfaces().Any(type.IsAssignableFrom),
           _ => false
       };
     }
@@ -256,12 +258,12 @@ internal static class TypeExtensions {
           
       var genericParameterAttributes = declaringArgument.GenericParameterAttributes;
       if ((genericParameterAttributes & GenericParameterAttributes.Covariant) != 0) {
-        if (!typeArgument.IsAssignableFrom(otherArgument)) {
+        if (!typeArgument.IsAssignableTo(otherArgument)) {
           return false;
         }
       }
       else if ((genericParameterAttributes & GenericParameterAttributes.Contravariant) != 0) {
-        if (!typeArgument.IsAssignableTo(otherArgument)) {
+        if (!typeArgument.IsAssignableFrom(otherArgument)) {
           return false;
         }
       }
@@ -293,16 +295,16 @@ internal static class TypeExtensions {
       }
       
       return declaringArgument.Variance switch {
-          VarianceKind.Out => otherArgument.IsAssignableTo(typeArgument),
-          VarianceKind.In => otherArgument.IsAssignableFrom(typeArgument),
+          VarianceKind.Out => otherArgument.IsAssignableFrom(typeArgument),
+          VarianceKind.In => otherArgument.IsAssignableTo(typeArgument),
           _ => otherArgument.IsSameType(typeArgument)
       };
     }
 
     return type switch {
         { TypeKind: TypeKind.Class } when otherType is { IsClass: true, BaseType: not null } =>
-            type.IsAssignableTo(otherType.BaseType),
-        { TypeKind: TypeKind.Interface } => otherType.GetInterfaces().Any(type.IsAssignableTo),
+            type.IsAssignableFrom(otherType.BaseType),
+        { TypeKind: TypeKind.Interface } => otherType.GetInterfaces().Any(type.IsAssignableFrom),
         _ => false
     };
   }
@@ -320,7 +322,7 @@ internal static class TypeExtensions {
   /// </exception>
   public static T GetTypedValue<T>(this TypedConstant attributeValue) {
     if (attributeValue.Value is null && typeof(T).IsValueType) {
-      throw new InvalidOperationException("Type is null");
+      throw new InvalidOperationException(TypeIsNull);
     }
 
     return (T)attributeValue.Value!;
@@ -335,15 +337,41 @@ internal static class TypeExtensions {
   /// The <see cref="INamedTypeSymbol"/> representing the specified <see cref="Type"/> if found; otherwise, an exception is thrown.
   /// </returns>
   /// <exception cref="InvalidOperationException">Thrown if the provided type or its metadata name is null, or if the type cannot be found in the compilation.</exception>
-  public static INamedTypeSymbol GetNamedType(this Compilation compilation, Type type) {
+  public static ITypeSymbol GetType(this Compilation compilation, Type type) {
+    if (type.IsArray) {
+      return compilation.CreateArrayTypeSymbol(compilation.GetType(type.GetElementType()!), type.GetArrayRank());
+    }
+
+    if (type.IsPointer) {
+      return compilation.CreatePointerTypeSymbol(compilation.GetType(type.GetElementType()!));
+    }
+
+    if (type.IsGenericParameter) {
+      var owningType = compilation.GetTypeByMetadataName(type.DeclaringType!.FullName!);
+      if (owningType is null) {
+        throw new InvalidOperationException(TypeIsNull);
+      }
+      
+      return owningType.TypeParameters[type.GenericParameterPosition];
+    }
+
+    if (type.IsConstructedGenericType) {
+      var genericDefinition = type.GetGenericTypeDefinition()!;
+      var unboundType = (INamedTypeSymbol) compilation.GetType(genericDefinition);
+      var typeArgs = type.GetGenericArguments()
+          .Select((a, i) => a.IsGenericParameter ? unboundType.TypeArguments[i] : compilation.GetType(a))
+          .ToArray();
+      return unboundType.Construct(typeArgs);
+    }
+    
     var metadataName = type.FullName;
     if (metadataName is null) {
-      throw new InvalidOperationException("Type is null");
+      throw new InvalidOperationException(TypeIsNull);
     }
 
     var symbol = compilation.GetTypeByMetadataName(metadataName);
     if (symbol is null) {
-      throw new InvalidOperationException("Type is null");
+      throw new InvalidOperationException(TypeIsNull);
     }
 
     return symbol;
@@ -357,8 +385,8 @@ internal static class TypeExtensions {
   /// <returns>
   /// The <see cref="INamedTypeSymbol"/> that corresponds to the specified .NET type, or null if no matching symbol is found.
   /// </returns>
-  public static INamedTypeSymbol GetNamedType<T>(this Compilation compilation) {
-    return compilation.GetNamedType(typeof(T));
+  public static ITypeSymbol GetType<T>(this Compilation compilation) {
+    return compilation.GetType(typeof(T));
   }
 
   /// <summary>

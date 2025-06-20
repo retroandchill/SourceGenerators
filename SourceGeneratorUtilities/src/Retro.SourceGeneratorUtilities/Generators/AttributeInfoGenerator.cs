@@ -1,5 +1,4 @@
 ﻿using System.Collections.Immutable;
-using System.Linq;
 using HandlebarsDotNet;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -11,9 +10,20 @@ using Retro.SourceGeneratorUtilties.Generator.Properties;
 
 namespace Retro.SourceGeneratorUtilities.Generators;
 
+/// <summary>
+/// Converts and processes attribute information for type declarations (classes, structs, records)
+/// marked with the <see cref="AttributeInfoTypeAttribute"/> in a C# source generation context.
+/// </summary>
+/// <remarks>
+/// The <see cref="AttributeInfoGenerator"/> implements the <see cref="IIncrementalGenerator"/> interface,
+/// making it part of the incremental source generation process. It identifies type declarations that
+/// have the <see cref="AttributeInfoTypeAttribute"/> applied, extracts relevant information about these types,
+/// and facilitates further processing or source generation based on the information collected.
+/// </remarks>
 [Generator]
-public class AttributeInfoGenerator : IIncrementalGenerator {
+internal class AttributeInfoGenerator : IIncrementalGenerator {
   
+  /// <inheritdoc/>
   public void Initialize(IncrementalGeneratorInitializationContext context) {
     var validTypes = context.SyntaxProvider.CreateSyntaxProvider(
         (s, _) => s is ClassDeclarationSyntax or StructDeclarationSyntax or RecordDeclarationSyntax,

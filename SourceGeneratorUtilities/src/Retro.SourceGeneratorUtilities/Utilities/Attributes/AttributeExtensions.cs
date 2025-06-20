@@ -31,7 +31,7 @@ internal static class AttributeExtensions {
   /// </returns>
   public static bool HasAttribute(this ISymbol symbol, Type attributeType) {
     return symbol.GetAttributes()
-        .Any(a => a.AttributeClass?.IsAssignableFrom(attributeType) ?? false);
+        .Any(a => a.AttributeClass?.IsAssignableTo(attributeType) ?? false);
   }
 
   /// <summary>
@@ -83,12 +83,23 @@ internal static class AttributeExtensions {
     return true;
   }
 
+  /// <summary>
+  /// Extracts information from the specified <see cref="AttributeData"/> to create an <see cref="AttributeUsageInfo"/> instance.
+  /// </summary>
+  /// <param name="attributeData">
+  /// The <see cref="AttributeData"/> representing an attribute to analyze and extract usage information from.
+  /// </param>
+  /// <returns>
+  /// An <see cref="AttributeUsageInfo"/> instance containing the parsed attribute usage details,
+  /// including valid targets, whether the attribute can be applied multiple times, and whether
+  /// it is inheritable.
+  /// </returns>
   public static AttributeUsageInfo GetUsageInfo(this AttributeData attributeData) {
     var attributeUsage = attributeData.AttributeClass?.GetAttributes()
-        .SingleOrDefault(a => a.AttributeClass?.IsAssignableFrom<AttributeUsageAttribute>() ?? false);
+        .SingleOrDefault(a => a.AttributeClass?.IsAssignableTo<AttributeUsageAttribute>() ?? false);
 
     if (attributeUsage is null) {
-      return new AttributeUsageInfo();
+      return new AttributeUsageInfo(AttributeTargets.All);
     }
 
     if (!attributeUsage.HasMatchingConstructor(typeof(AttributeTargets))) {
