@@ -1,6 +1,7 @@
 ﻿# Retro.SourceGeneratorUtilities
 
-![NuGet Version](https://img.shields.io/nuget/v/Retro.SourceGeneratorUtilities?logo=nuget)![GitHub Release](https://img.shields.io/github/v/release/retroandchill/Retro.SourceGeneratorUtilities?logo=github)[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=retroandchill_Retro.SourceGeneratorUtilities&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=retroandchill_Retro.SourceGeneratorUtilities)[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=retroandchill_Retro.SourceGeneratorUtilities&metric=coverage)](https://sonarcloud.io/summary/new_code?id=retroandchill_Retro.SourceGeneratorUtilities)
+[![NuGet Version](https://img.shields.io/nuget/v/Retro.SourceGeneratorUtilities?logo=nuget)](https://www.nuget.org/packages/Retro.SourceGeneratorUtilities)[![GitHub Release](https://img.shields.io/github/v/release/retroandchill/Retro.SourceGeneratorUtilities?logo=github)](https://github.com/retroandchill/Retro.SourceGeneratorUtilities)[![Quality Gate 
+Status](https://sonarcloud.io/api/project_badges/measure?project=retroandchill_Retro.SourceGeneratorUtilities&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=retroandchill_Retro.SourceGeneratorUtilities)[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=retroandchill_Retro.SourceGeneratorUtilities&metric=coverage)](https://sonarcloud.io/summary/new_code?id=retroandchill_Retro.SourceGeneratorUtilities)
 
 This repo contains a number of useful utilities for usage within a source generator.
 
