@@ -24,7 +24,7 @@ public static class {{Name}}Extensions {
     }
 
     {{#ChildClasses}}
-    if (!data.AttributeClass.IsAssignableFrom(typeof({{AttributeTypeofName}}))) {
+    if (data.AttributeClass.IsAssignableTo(typeof({{AttributeTypeofName}}))) {
       if ({{ModelType}}Extensions.TryGet{{ModelName}}(data, out var childInfo)) {
         info = childInfo;
         return true;
@@ -35,7 +35,7 @@ public static class {{Name}}Extensions {
     }
     {{/ChildClasses}}
 
-    if (!data.AttributeClass.IsSameType(typeof({{AttributeTypeofName}}))) {
+    if ({{#IsUnboundGeneric}}!data.AttributeClass.IsGenericType || {{/IsUnboundGeneric}}!data.AttributeClass{{#IsUnboundGeneric}}.ConstructedFrom{{/IsUnboundGeneric}}.IsSameType(typeof({{AttributeTypeofName}}))) {
       info = {{#IsValueType}}default{{/IsValueType}}{{^IsValueType}}null{{/IsValueType}};
       return false;
     }
@@ -43,7 +43,7 @@ public static class {{Name}}Extensions {
     {{#Constructors}}
     if (data.HasMatchingConstructor({{#Parameters}}typeof({{NonNullableType}}){{^IsLast}}, {{/IsLast}}{{/Parameters}})) {
       var namedArguments = data.NamedArguments.ToDictionary(p => p.Key, p => p.Value);
-      info = new {{../Name}}({{#Parameters}}data.ConstructorArguments[{{Index}}].GetTypedValue<{{Type}}>(){{^IsLast}}, {{/IsLast}}{{/Parameters}}) {
+      info = new {{../Name}}({{#if ../IsUnboundGeneric}}{{#each ../TypeParameters}}data.AttributeClass.TypeArguments[{{Index}}]{{^IsLast}}, {{/IsLast}}{{/ each}}{{#HasParameters}}, {{/HasParameters}}{{/if}}{{#Parameters}}data.ConstructorArguments[{{Index}}].GetTypedValue<{{Type}}>(){{^IsLast}}, {{/IsLast}}{{/Parameters}}) {
         {{#each ../Properties}}
           {{Name}} = namedArguments.TryGetValue("{{Name}}", out var value{{Name}}) ? value{{Name}}.GetTypedValue<{{Type}}>() : {{#HasDefaultValue}}{{DefaultValue}}{{/HasDefaultValue}}{{^HasDefaultValue}}default{{/HasDefaultValue}},
         {{/each}}

@@ -24,7 +24,7 @@
 
     <Description>Common utilities for use in Source Generators.</Description>
 
-    <Version>0.1.1</Version>
+    <Version>0.1.2</Version>
 
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/retroandchill/Retro.SourceGeneratorUtilities</RepositoryUrl>

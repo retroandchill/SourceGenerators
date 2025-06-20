@@ -86,8 +86,9 @@ internal static class AttributeInfoTypeExtensions {
         .Select(r => r.Where(m => m is not null)
                     .Select((m, i) => new AttributeInfoConstructorOverview {
                         Parameters = m!.Parameters
+                            .Skip(attributeType.TypeParameters.Length)
                             .Select((p, j) => new AttributeInfoConstructorParamOverview(p) {
-                                Index = i,
+                                Index = j,
                                 IsLast = j == m.Parameters.Length - 1
                             })
                             .ToImmutableList(),
@@ -118,10 +119,17 @@ internal static class AttributeInfoTypeExtensions {
                     })
                     .ToImmutableArray());
 
+    var typeParameters = attributeType.TypeParameters
+        .Select((_, i) => new AttributeTypeParameterOverview(i) {
+            IsLast = i == attributeType.TypeParameters.Length - 1
+        })
+        .ToImmutableArray();
+
     return validatedConstructors
         .Combine(validatedProperties,
                  (c, p) => new AttributeInfoTypeOverview(typeSymbol, attributeType) {
                      Constructors = c,
+                     TypeParameters = typeParameters,
                      Properties = p,
                      ChildClasses = [
                          ..possibleTypes

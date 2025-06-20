@@ -15,6 +15,15 @@ public record struct AttributeInfoConstructorOverview {
   public required ImmutableList<AttributeInfoConstructorParamOverview> Parameters { get; init; }
 
   /// <summary>
+  /// Gets a value indicating whether the constructor has parameters defined.
+  /// </summary>
+  /// <remarks>
+  /// This property evaluates the count of the parameter list in the constructor overview.
+  /// If the count is greater than zero, it indicates that the constructor contains parameters.
+  /// </remarks>
+  public bool HasParameters => Parameters.Count > 0;
+
+  /// <summary>
   /// Indicates whether the current item is the last within its containing collection or sequence.
   /// </summary>
   /// <remarks>

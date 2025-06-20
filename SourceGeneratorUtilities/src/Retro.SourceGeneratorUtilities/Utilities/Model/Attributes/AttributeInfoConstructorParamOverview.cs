@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Retro.SourceGeneratorUtilities.Utilities.Types;
 namespace Retro.SourceGeneratorUtilities.Utilities.Model.Attributes;
 
 /// <summary>
@@ -29,7 +30,8 @@ public record struct AttributeInfoConstructorParamOverview(IParameterSymbol Symb
   /// set to <see cref="NullableAnnotation.NotAnnotated"/>. It provides a type representation that is explicitly
   /// non-nullable, regardless of the original nullable annotation of the parameter type.
   /// </remarks>
-  public ITypeSymbol NonNullableType => Type.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
+  public string NonNullableType => Type.IsSameType<ITypeSymbol>() ? typeof(Type).FullName! : 
+      Type.WithNullableAnnotation(NullableAnnotation.NotAnnotated).ToDisplayString();
 
   /// <summary>
   /// Gets the name of the constructor parameter.
