@@ -73,6 +73,10 @@ internal static class AttributeExtensions {
 
     for (var i = 0; i < attributeData.ConstructorArguments.Length; i++) {
       var constructorType = constructorTypes[i];
+      if (constructorType == typeof(object)) {
+        continue;
+      }
+      
       var constructorArgument = attributeData.ConstructorArguments[i];
 
       if (!constructorArgument.Type?.IsSameType(constructorType) ?? false) {
