@@ -15,6 +15,10 @@ namespace Retro.SourceGeneratorUtilities.Utilities.Types;
 #endif
 internal static class TypeExtensions {
   private const string TypeIsNull = "Type is null";
+  
+  private static readonly MethodInfo EnumerableCast = typeof(Enumerable).GetMethod(nameof(Enumerable.Cast))!;
+  private static readonly MethodInfo GenericToArray = typeof(Enumerable).GetMethod(nameof(Enumerable.ToArray))!;
+  
   /// <summary>
   /// Determines if the current <see cref="ITypeSymbol"/> represents the same type as the specified <see cref="Type"/>.
   /// </summary>
@@ -321,11 +325,27 @@ internal static class TypeExtensions {
   /// Thrown if the value of the <see cref="TypedConstant"/> is null and the specified type <typeparamref name="T"/> is a value type.
   /// </exception>
   public static T GetTypedValue<T>(this TypedConstant attributeValue) {
-    if (attributeValue.Value is null && typeof(T).IsValueType) {
+    return (T) attributeValue.GetTypedValue(typeof(T))!;
+  }
+
+  private static object? GetTypedValue(this TypedConstant attributeValue, Type type) {
+    if (attributeValue.Kind != TypedConstantKind.Array && attributeValue.Value is null && type.IsValueType) {
       throw new InvalidOperationException(TypeIsNull);
     }
 
-    return (T)attributeValue.Value!;
+    if (!type.IsArray) return attributeValue.Value;
+
+    var elementType = type.GetElementType()!;
+    var instantiatedCastMethod = EnumerableCast.MakeGenericMethod(elementType);
+    var instantiatedToArrayMethod = GenericToArray.MakeGenericMethod(elementType);
+
+
+    var valueLiterals = attributeValue.Values
+        .Select(x => x.Value);
+    
+    var castedValues = instantiatedCastMethod.Invoke(null, [valueLiterals]);
+    return instantiatedToArrayMethod.Invoke(null, [castedValues]);
+
   }
 
   /// <summary>

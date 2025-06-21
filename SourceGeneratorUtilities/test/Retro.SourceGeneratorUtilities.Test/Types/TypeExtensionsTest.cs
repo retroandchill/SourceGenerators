@@ -4,6 +4,12 @@ using Retro.SourceGeneratorUtilities.Test.Utils;
 
 namespace Retro.SourceGeneratorUtilities.Test.Types;
 
+public enum TestEnumType {
+  Value1,
+  Value2,
+  Value3
+}
+
 public class TypeExtensionsTest {
 
   [Test]
@@ -470,4 +476,166 @@ public class TypeExtensionsTest {
                   "Triple generic type should have two comma placeholders");
     });
   }
+
+  private static readonly int[] Expected = [1, 2, 3];
+
+  [Test]
+  public void TestGetTypedValue() {
+    // Create a test compilation with attributes containing various value types
+    var compilation = GeneratorTestHelpers.CreateCompilation(
+        """
+        using System;
+        using Retro.SourceGeneratorUtilities.Test.Types;
+
+        namespace TestNamespace {
+            // Define test enum
+
+            // Define test attributes with various parameter types
+            [AttributeUsage(AttributeTargets.Class)]
+            public class IntAttribute : Attribute {
+                public IntAttribute(int value) {
+                    Value = value;
+                }
+
+                public int Value { get; }
+            }
+
+            [AttributeUsage(AttributeTargets.Class)]
+            public class StringAttribute : Attribute {
+                public StringAttribute(string value) {
+                    Value = value;
+                }
+
+                public string Value { get; }
+            }
+
+            [AttributeUsage(AttributeTargets.Class)]
+            public class EnumAttribute : Attribute {
+                public EnumAttribute(TestEnumType value) {
+                    Value = value;
+                }
+
+                public TestEnumType Value { get; }
+            }
+
+            [AttributeUsage(AttributeTargets.Class)]
+            public class NullableAttribute : Attribute {
+                public NullableAttribute(string? value) {
+                    Value = value;
+                }
+
+                public string? Value { get; }
+            }
+
+            [AttributeUsage(AttributeTargets.Class)]
+            public class ArrayAttribute : Attribute {
+                public ArrayAttribute(int[] values) {
+                    Values = values;
+                }
+
+                public int[] Values { get; }
+            }
+            
+            [AttributeUsage(AttributeTargets.Class)]
+            public class EnumArrayAttribute : Attribute {
+                public ArrayAttribute(TestEnumType[] values) {
+                    Values = values;
+                }
+            
+                public TestEnumType[] Values { get; }
+            }
+
+            [AttributeUsage(AttributeTargets.Class)]
+            public class MultiTypeAttribute : Attribute {
+                public MultiTypeAttribute(Type type) {
+                    Type = type;
+                }
+
+                public Type Type { get; }
+            }
+
+            // Define test classes with attributes
+            [Int(42)]
+            public class TestIntClass {}
+
+            [String("test string")]
+            public class TestStringClass {}
+
+            [Enum(TestEnumType.Value2)]
+            public class TestEnumClass {}
+
+            [Nullable(null)]
+            public class TestNullClass {}
+
+            [Array(new[] {1, 2, 3})]
+            public class TestArrayClass {}
+            
+            [EnumArray(new[] {TestEnumType.Value1, TestEnumType.Value2, TestEnumType.Value3})]
+            public class TestEnumArrayClass {}
+
+            [MultiType(typeof(int))]
+            public class TestTypeClass {}
+        }
+        """);
+
+    // Get attribute data from each test class
+    var intAttribute = compilation.GetTypeByMetadataName("TestNamespace.TestIntClass")!
+        .GetAttributes().First();
+    var stringAttribute = compilation.GetTypeByMetadataName("TestNamespace.TestStringClass")!
+        .GetAttributes().First();
+    var enumAttribute = compilation.GetTypeByMetadataName("TestNamespace.TestEnumClass")!
+        .GetAttributes().First();
+    var nullAttribute = compilation.GetTypeByMetadataName("TestNamespace.TestNullClass")!
+        .GetAttributes().First();
+    var arrayAttribute = compilation.GetTypeByMetadataName("TestNamespace.TestArrayClass")!
+        .GetAttributes().First();
+    var enumArrayAttribute = compilation.GetTypeByMetadataName("TestNamespace.TestEnumArrayClass")!
+        .GetAttributes().First();
+    var typeAttribute = compilation.GetTypeByMetadataName("TestNamespace.TestTypeClass")!
+        .GetAttributes().First();
+
+    Assert.Multiple(() => {
+      // Test int attribute value
+      var intValue = intAttribute.ConstructorArguments[0];
+      Assert.That(intValue.GetTypedValue<int>(), Is.EqualTo(42), "Int value should be 42");
+
+      // Test string attribute value
+      var stringValue = stringAttribute.ConstructorArguments[0];
+      Assert.That(stringValue.GetTypedValue<string>(), Is.EqualTo("test string"), "String value should match");
+
+      // Test enum attribute value
+      var enumValue = enumAttribute.ConstructorArguments[0];
+      Assert.That(enumValue.GetTypedValue<TestEnumType>(), Is.EqualTo(TestEnumType.Value2), "Enum raw value should be 1"); // Value2 = 1
+
+      // Test null attribute value
+      var nullValue = nullAttribute.ConstructorArguments[0];
+      Assert.That(nullValue.GetTypedValue<string>(), Is.Null, "Null string should be null");
+
+      // Test array attribute value
+      var arrayValue = arrayAttribute.ConstructorArguments[0];
+      var result = arrayValue.GetTypedValue<int[]>();
+      Assert.That(result, Is.Not.Null, "Array should not be null");
+      Assert.That(result, Has.Length.EqualTo(3), "Array should have 3 elements");
+      Assert.That(result, Is.EquivalentTo(Expected), "Array values should match");
+      
+      // Test enum array attribute value
+      var enumArrayValue = enumArrayAttribute.ConstructorArguments[0];
+      var enumResult = enumArrayValue.GetTypedValue<TestEnumType[]>();
+      Assert.That(enumResult, Is.Not.Null, "Array should not be null");
+      Assert.That(enumResult, Has.Length.EqualTo(3), "Array should have 3 elements");
+      Assert.That(enumResult, Is.EquivalentTo(new[] { TestEnumType.Value1, TestEnumType.Value2, TestEnumType.Value3 }), "Array values should match");
+
+      // Test Type attribute value
+      var typeValue = typeAttribute.ConstructorArguments[0];
+      var resultType = typeValue.GetTypedValue<ITypeSymbol>();
+      Assert.That(resultType, Is.Not.Null, "Type should not be null");
+      Assert.That(resultType.Name, Is.EqualTo("Int32"), "Type name should be Int32");
+
+      // Test exception when null is provided for value type
+      Assert.That(() => nullValue.GetTypedValue<int>(), 
+                  Throws.TypeOf<InvalidOperationException>().With.Message.EqualTo("Type is null"));
+    });
+  }
+  
+  
 }
