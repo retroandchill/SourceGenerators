@@ -1,0 +1,68 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using Microsoft.CodeAnalysis;
+using Retro.SourceGeneratorUtilities.Utilities.Attributes;
+using Retro.SourceGeneratorUtilities.Utilities.Types;
+#nullable enable
+
+namespace {{Namespace}};
+
+public static class {{Name}}Extensions {
+
+  public static {{Name}} Get{{Name}}(this AttributeData data) {
+    return data.TryGet{{Name}}(out var info) ? info : throw new InvalidOperationException("Cannot create {{AttributeName}}Info");
+  }  
+
+  public static bool TryGet{{Name}}(this AttributeData data, {{^IsValueType}}[NotNullWhen(true)] {{/IsValueType}}out {{Name}}{{^IsValueType}}?{{/IsValueType}} info) {
+    var args = data.ConstructorArguments;
+
+    if (data.AttributeClass is null) {
+      info = {{#IsValueType}}default{{/IsValueType}}{{^IsValueType}}null{{/IsValueType}};
+      return false;
+    }
+
+    {{#ChildClasses}}
+    if (data.AttributeClass.IsAssignableTo(typeof({{AttributeTypeofName}}))) {
+      if ({{ModelType}}Extensions.TryGet{{ModelName}}(data, out var childInfo)) {
+        info = childInfo;
+        return true;
+      } else {
+        info = {{#IsValueType}}default{{/IsValueType}}{{^IsValueType}}null{{/IsValueType}};
+        return false;
+      }
+    }
+    {{/ChildClasses}}
+
+    if ({{#IsUnboundGeneric}}!data.AttributeClass.IsGenericType || {{/IsUnboundGeneric}}!data.AttributeClass{{#IsUnboundGeneric}}.ConstructedFrom{{/IsUnboundGeneric}}.IsSameType(typeof({{AttributeTypeofName}}))) {
+      info = {{#IsValueType}}default{{/IsValueType}}{{^IsValueType}}null{{/IsValueType}};
+      return false;
+    }
+
+    {{#Constructors}}
+    if (data.HasMatchingConstructor({{#Parameters}}typeof({{NonNullableType}}){{^IsLast}}, {{/IsLast}}{{/Parameters}})) {
+      var namedArguments = data.NamedArguments.ToDictionary(p => p.Key, p => p.Value);
+      info = new {{../Name}}({{#if ../IsUnboundGeneric}}{{#each ../TypeParameters}}data.AttributeClass.TypeArguments[{{Index}}]{{^IsLast}}, {{/IsLast}}{{/ each}}{{#HasParameters}}, {{/HasParameters}}{{/if}}{{#Parameters}}data.ConstructorArguments[{{Index}}].GetTypedValue<{{Type}}>(){{^IsLast}}, {{/IsLast}}{{/Parameters}}) {
+        {{#each ../Properties}}
+          {{Name}} = namedArguments.TryGetValue("{{Name}}", out var value{{Name}}) ? value{{Name}}.GetTypedValue<{{Type}}>() : {{#HasDefaultValue}}{{DefaultValue}}{{/HasDefaultValue}}{{^HasDefaultValue}}default{{/HasDefaultValue}},
+        {{/each}}
+      };
+      return true;
+    }
+    
+    {{/Constructors}}
+
+    info = {{#IsValueType}}default{{/IsValueType}}{{^IsValueType}}null{{/IsValueType}};;
+    return false;
+  }
+
+  public static IEnumerable<{{Name}}> Get{{Name}}s(this IEnumerable<AttributeData> attributeDatas) {
+    foreach (var data in attributeDatas) {
+      if (data.TryGet{{Name}}(out var info)) {
+        yield return info;
+      }
+    }
+  }
+
+}
