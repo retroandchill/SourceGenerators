@@ -1,6 +1,6 @@
 ﻿using BetterEnumsGen;
 
-namespace Retro.AutoCommandLine.Model;
+namespace Retro.AutoCommandLine.Model.Commands;
 
 [BetterEnum]
 public enum OptionType {

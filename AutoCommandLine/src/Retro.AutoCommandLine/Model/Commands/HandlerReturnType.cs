@@ -1,4 +1,4 @@
-﻿namespace Retro.AutoCommandLine.Model;
+﻿namespace Retro.AutoCommandLine.Model.Commands;
 
 public enum HandlerReturnType {
   Void,

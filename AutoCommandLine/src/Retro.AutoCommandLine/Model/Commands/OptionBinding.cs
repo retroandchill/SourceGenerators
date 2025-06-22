@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Options;
-namespace Retro.AutoCommandLine.Model;
+﻿namespace Retro.AutoCommandLine.Model.Commands;
 
 public record OptionBinding {
   public required OptionType Wrapper { get; init; }

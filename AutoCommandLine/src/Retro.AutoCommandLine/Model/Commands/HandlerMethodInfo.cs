@@ -1,4 +1,4 @@
-﻿namespace Retro.AutoCommandLine.Model;
+﻿namespace Retro.AutoCommandLine.Model.Commands;
 
 public record HandlerMethodInfo {
  public required string Name { get; init; }
