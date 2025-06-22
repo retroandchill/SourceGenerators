@@ -1,0 +1,31 @@
+using System;
+using System.CommandLine;
+using System.CommandLine.Binding;
+using System.CommandLine.Invocation;
+using Retro.AutoCommandLine.Core.Handlers;
+
+namespace {{Namespace}};
+
+public sealed class {{ClassName}}Binder : BinderBase<{{ClassName}}>, ICommandBinder<{{ClassName}}> {
+  {{#Options}}
+  private readonly {{Wrapper}}<{{Type}}> _{{Name}}{{Wrapper}};  
+  {{/Options}}
+
+  public {{ClassName}}Binder({{#Options}}{{Wrapper}}<{{Type}}> {{Name}}{{Wrapper}}{{^IsLast}}, {{/IsLast}}{{/Options}}) {
+    {{#Options}}
+    _{{Name}}{{Wrapper}} = {{Name}}{{Wrapper}};
+    {{/Options}} 
+  }
+
+  public {{ClassName}} Bind(InvocationContext context) {
+    return GetBoundValue(context.BindingContext);
+  }
+
+  protected override {{ClassName}} GetBoundValue(BindingContext bindingContext) {
+    return new {{ClassName}} {
+      {{#Options}}
+      {{Name}} = bindingContext.ParseResult.GetValueFor{{Wrapper}}(_{{Name}}{{Wrapper}}){{^IsLast}},{{/IsLast}}
+      {{/Options}}
+    };
+  }
+}
