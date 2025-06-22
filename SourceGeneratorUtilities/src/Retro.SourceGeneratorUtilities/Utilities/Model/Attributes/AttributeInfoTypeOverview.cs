@@ -65,7 +65,45 @@ public record AttributeInfoTypeOverview(INamedTypeSymbol ModelSymbol, INamedType
   /// <see cref="INamedTypeSymbol"/> is such a type.
   /// </remarks>
   public bool IsUnboundGeneric => AttributeSymbol.IsGenericType && AttributeSymbol.TypeArguments.All(a => a is ITypeParameterSymbol);
-
+  
+  public required bool AllowMultiple { get; init; }
+  
+  public required AttributeTargets ValidOn { get; init; }
+  
+  public bool ValidOnAssembly => ValidOn.HasFlag(AttributeTargets.Assembly);
+  
+  public bool ValidOnModule => ValidOn.HasFlag(AttributeTargets.Module);
+  
+  public bool ValidOnClass => ValidOn.HasFlag(AttributeTargets.Class);
+  
+  public bool ValidOnStruct => ValidOn.HasFlag(AttributeTargets.Struct);
+  
+  public bool ValidOnInterface => ValidOn.HasFlag(AttributeTargets.Interface);
+  
+  public bool ValidOnEnum => ValidOn.HasFlag(AttributeTargets.Enum);
+  
+  public bool ValidOnDelegate => ValidOn.HasFlag(AttributeTargets.Delegate);
+  
+  public bool ValidOnNamedType => ValidOnClass || ValidOnStruct || ValidOnInterface || ValidOnEnum || ValidOnDelegate;
+  
+  public bool ValidOnMethod => ValidOn.HasFlag(AttributeTargets.Method);
+  
+  public bool ValidOnConstructor => ValidOn.HasFlag(AttributeTargets.Constructor);
+  
+  public bool ValidOnReturnValue => ValidOn.HasFlag(AttributeTargets.ReturnValue);
+  
+  public bool ValidOnParameter => ValidOn.HasFlag(AttributeTargets.Parameter);
+  
+  public bool ValidOnAnyMethod => ValidOnMethod || ValidOnConstructor;
+  
+  public bool ValidOnProperty => ValidOn.HasFlag(AttributeTargets.Property);
+  
+  public bool ValidOnField => ValidOn.HasFlag(AttributeTargets.Field);
+  
+  public bool ValidOnEvent => ValidOn.HasFlag(AttributeTargets.Event);
+  
+  public bool ValidOnGenericParameter => ValidOn.HasFlag(AttributeTargets.GenericParameter);
+  
 
   /// <summary>
   /// Gets the constructors available for the attribute type overview.
