@@ -1,5 +1,4 @@
-﻿using System;
-#if FAST_INJECT_GENERATOR
+﻿#if FAST_INJECT_GENERATOR
 using RhoMicro.CodeAnalysis;
 #endif
 

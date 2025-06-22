@@ -42,7 +42,6 @@
     <ItemGroup>
       <ProjectReference Include="..\..\..\ReadOnlyParams\src\Retro.ReadOnlyParams\Retro.ReadOnlyParams.csproj"  OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
       <ProjectReference Include="..\..\..\SourceGeneratorUtilities\src\Retro.SourceGeneratorUtilities\Retro.SourceGeneratorUtilities.csproj"  OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
-      <ProjectReference Include="..\Retro.FastInject.Annotations\Retro.FastInject.Annotations.csproj" PrivateAssets="all"/>
     </ItemGroup>
 
     <PropertyGroup>

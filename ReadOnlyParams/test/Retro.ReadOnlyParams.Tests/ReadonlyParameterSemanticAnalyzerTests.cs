@@ -172,13 +172,23 @@ public class Spaceship
   }
 
   private static Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected) {
+    const string attributeDefinition = """
+                                       namespace Retro.ReadOnlyParams.Annotations
+                                       {
+                                           [System.AttributeUsage(System.AttributeTargets.Parameter)]
+                                           public class ReadOnlyAttribute : System.Attribute { }
+                                       }
+                                       """;
+
+    
     var test = new CSharpAnalyzerTest<ReadonlyParameterSemanticAnalyzer, DefaultVerifier> {
         TestCode = source,
         ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         TestState = {
             AdditionalReferences = {
                 MetadataReference.CreateFromFile(typeof(ReadOnlyAttribute).Assembly.Location)
-            }
+            },
+            Sources = { attributeDefinition }
         }
     };
     test.ExpectedDiagnostics.AddRange(expected);
