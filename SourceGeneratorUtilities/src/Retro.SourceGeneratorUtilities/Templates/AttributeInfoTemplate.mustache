@@ -128,6 +128,12 @@ internal static class {{Name}}Extensions {
   {{#ValidOnNamedType}}
     
   public static bool TryGet{{Name}}(this INamedTypeSymbol type, {{^IsValueType}}[NotNullWhen(true)] {{/IsValueType}}out {{Name}}{{^IsValueType}}?{{/IsValueType}} info) {
+    {{^ValidOnAnyType}}
+    if (type.TypeKind is not {{#ValidOnTypes}}TypeKind.{{Kind}}{{^IsLast}} or {{/IsLast}}{{/ValidOnTypes}}) {
+      throw new InvalidOperationException("The attribute '{{AttributeTypeofName}}' is only valid one of the following types: {{#ValidOnTypes}}{{Kind}}{{^IsLast}}, {{/IsLast}}{{/ValidOnTypes}}");
+    }
+
+    {{/ValidOnAnyType}}
     return type.GetAttributes().TryGet{{Name}}(out info);    
   }
   {{/ValidOnNamedType}}
@@ -140,6 +146,12 @@ internal static class {{Name}}Extensions {
   {{#ValidOnAnyMethod}}
     
   public static bool TryGet{{Name}}(this IMethodSymbol method, {{^IsValueType}}[NotNullWhen(true)] {{/IsValueType}}out {{Name}}{{^IsValueType}}?{{/IsValueType}} info) {
+    {{#OnlyValidOnConstructor}}
+    if (handlerMethod.MethodKind != MethodKind.Constructor) {
+      throw new InvalidOperationException("The attribute '{{AttributeTypeofName}}' is only valid on constructors.");
+    }
+
+    {{/OnlyValidOnConstructor}}
     return method.GetAttributes().TryGet{{Name}}(out info);    
   }
   {{/ValidOnAnyMethod}}
@@ -222,6 +234,12 @@ internal static class {{Name}}Extensions {
   {{#ValidOnNamedType}}
     
   public static IEnumerable<{{Name}}> Get{{Name}}s(this INamedTypeSymbol type) {
+    {{^ValidOnAnyType}}
+    if (type.TypeKind is not {{#ValidOnTypes}}TypeKind.{{Kind}}{{^IsLast}} or {{/IsLast}}{{/ValidOnTypes}}) {
+      throw new InvalidOperationException("The attribute '{{AttributeTypeofName}}' is only valid one of the following types: {{#ValidOnTypes}}{{Kind}}{{^IsLast}}, {{/IsLast}}{{/ValidOnTypes}}");
+    }
+
+    {{/ValidOnAnyType}}
     return type.GetAttributes().Get{{Name}}s();
   }
   {{/ValidOnNamedType}}
@@ -234,6 +252,12 @@ internal static class {{Name}}Extensions {
   {{#ValidOnAnyMethod}}
     
   public static IEnumerable<{{Name}}> Get{{Name}}s(this IMethodSymbol method) {
+    {{#OnlyValidOnConstructor}}
+    if (handlerMethod.MethodKind != MethodKind.Constructor) {
+      throw new InvalidOperationException("The attribute '{{AttributeTypeofName}}' is only valid on constructors.");
+    }
+
+    {{/OnlyValidOnConstructor}}
     return method.GetAttributes().Get{{Name}}s();
   }
   {{/ValidOnAnyMethod}}
