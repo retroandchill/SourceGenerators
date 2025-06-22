@@ -18,7 +18,7 @@ namespace Retro.FastInject.Model.Attributes;
 /// The symbol representation of the type being registered as a singleton.
 /// </param>
 [AttributeInfoType<SingletonAttribute>]
-public record SingletonOverview(ITypeSymbol Type) : DependencyOverview(Type, ServiceScope.Singleton);
+internal record SingletonOverview(ITypeSymbol Type) : DependencyOverview(Type, ServiceScope.Singleton);
 
 /// <summary>
 /// Represents an overview of a dependency that is registered with a singleton lifetime scope,
@@ -35,4 +35,4 @@ public record SingletonOverview(ITypeSymbol Type) : DependencyOverview(Type, Ser
 /// The symbol representation of the one-parameter generic type being registered as a singleton.
 /// </param>
 [AttributeInfoType(typeof(SingletonAttribute<>))]
-public record SingletonOneParamOverview(ITypeSymbol Type) : SingletonOverview(Type);
+internal record SingletonOneParamOverview(ITypeSymbol Type) : SingletonOverview(Type);

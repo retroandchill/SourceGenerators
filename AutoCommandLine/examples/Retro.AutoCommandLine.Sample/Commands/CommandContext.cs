@@ -1,5 +1,5 @@
 ﻿using System;
-using Retro.AutoCommandLine.Core.Attributes;
+using Retro.AutoCommandLine.Attributes;
 using Retro.AutoCommandLine.Core.Handlers;
 namespace Retro.AutoCommandLine.Sample.Commands;
 

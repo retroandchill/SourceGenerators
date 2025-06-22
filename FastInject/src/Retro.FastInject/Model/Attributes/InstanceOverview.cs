@@ -13,7 +13,7 @@ namespace Retro.FastInject.Model.Attributes;
 /// operate with uniquely identified dependency instances.
 /// </remarks>
 [AttributeInfoType<InstanceAttribute>]
-public record InstanceOverview {
+internal record InstanceOverview {
 
   /// <summary>
   /// Gets the unique identifier or key associated with the instance.

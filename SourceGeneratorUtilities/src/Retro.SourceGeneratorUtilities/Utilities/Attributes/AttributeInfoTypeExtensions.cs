@@ -183,6 +183,12 @@ internal static class AttributeInfoTypeExtensions {
         return false;
       }
 
+      if (targetParameter.Type.IsSameType<Type[]>()) {
+        if (modelParameter.Type.IsSameType<ITypeSymbol[]>()) continue;
+
+        return false;
+      }
+
       if (targetParameter.Type.Equals(modelParameter.Type, SymbolEqualityComparer.Default)) continue;
 
       return false;

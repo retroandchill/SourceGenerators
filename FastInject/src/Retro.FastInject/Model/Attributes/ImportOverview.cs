@@ -10,7 +10,7 @@ namespace Retro.FastInject.Model.Attributes;
 /// The symbol representing the type of the module to be imported.
 /// </param>
 [AttributeInfoType<ImportAttribute>]
-public record ImportOverview(ITypeSymbol ModuleType) {
+internal record ImportOverview(ITypeSymbol ModuleType) {
 
   /// <summary>
   /// Gets or sets a value indicating whether dynamic registrations are allowed
@@ -30,4 +30,4 @@ public record ImportOverview(ITypeSymbol ModuleType) {
 /// The symbol representing the type of the module to be imported.
 /// </param>
 [AttributeInfoType(typeof(ImportAttribute<>))]
-public record ImportOneParamOverview(ITypeSymbol ModuleType) : ImportOverview(ModuleType);
+internal record ImportOneParamOverview(ITypeSymbol ModuleType) : ImportOverview(ModuleType);

@@ -10,7 +10,7 @@ namespace Retro.FastInject.Model.Attributes;
 /// It provides functionality to initialize and retrieve the key associated with the service.
 /// </remarks>
 [AttributeInfoType<FromKeyedServicesAttribute>]
-public record FromKeyedServicesOverview {
+internal record FromKeyedServicesOverview {
 
   /// <summary>
   /// Represents the key associated with a keyed service in dependency injection.

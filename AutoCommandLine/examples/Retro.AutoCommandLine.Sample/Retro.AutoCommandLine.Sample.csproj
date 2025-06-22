@@ -5,6 +5,7 @@
         <Nullable>enable</Nullable>
         <RootNamespace>Retro.AutoCommandLine.Sample</RootNamespace>
         <OutputType>Exe</OutputType>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

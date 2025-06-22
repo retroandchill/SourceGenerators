@@ -5,7 +5,9 @@
         <IsPackable>false</IsPackable>
         <Nullable>enable</Nullable>
         <LangVersion>latest</LangVersion>
-        <ImplicitUsings>true</ImplicitUsings>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <DefineConstants>$(DefineConstants);FAST_INJECT_GENERATOR</DefineConstants>
 
         <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
         <IsRoslynComponent>true</IsRoslynComponent>
@@ -31,13 +33,15 @@
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+        <PackageReference Include="RhoMicro.CodeAnalysis.UtilityGenerators" Version="20.1.5">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\ReadOnlyParams\src\Retro.ReadOnlyParams.Annotations\Retro.ReadOnlyParams.Annotations.csproj" />
       <ProjectReference Include="..\..\..\ReadOnlyParams\src\Retro.ReadOnlyParams\Retro.ReadOnlyParams.csproj"  OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
       <ProjectReference Include="..\..\..\SourceGeneratorUtilities\src\Retro.SourceGeneratorUtilities\Retro.SourceGeneratorUtilities.csproj"  OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
-      <ProjectReference Include="..\Retro.FastInject.Annotations\Retro.FastInject.Annotations.csproj" PrivateAssets="all"/>
     </ItemGroup>
 
     <PropertyGroup>
@@ -57,8 +61,6 @@
         <ItemGroup>
             <TargetPathWithTargetPlatformMoniker Include="$(PKGHandlebars_Net)\lib\netstandard2.0\Handlebars.dll" IncludeRuntimeDependency="false" />
             <TargetPathWithTargetPlatformMoniker Include="$(PKGMicrosoft_Extensions_DependencyInjection_Abstractions)\lib\netstandard2.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll" IncludeRuntimeDependency="false" />
-            <TargetPathWithTargetPlatformMoniker Include="$(OutputPath)\$(AssemblyName).Annotations.dll"
-                                                 IncludeRuntimeDependency="false"/>
             <ReferenceCopyLocalPaths Include="@(ReferenceCopyLocalPaths->'%(RootDir)%(Directory)%(Filename).xml')" Condition="Exists('%(RootDir)%(Directory)%(Filename).xml')" />
         </ItemGroup>
     </Target>
@@ -68,11 +70,6 @@
         <None Include="$(OutputPath)\$(AssemblyName).pdb" Pack="true" PackagePath="analyzers/roslyn$(ROSLYN_VERSION)/dotnet/cs" Visible="false" />
         <None Include="$(PKGHandlebars_Net)\lib\netstandard2.0\Handlebars.dll" Pack="true" PackagePath="analyzers/roslyn$(ROSLYN_VERSION)/dotnet/cs" Visible="false" />
         <None Include="$(PKGMicrosoft_Extensions_DependencyInjection_Abstractions)\lib\netstandard2.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll" Pack="true" PackagePath="analyzers/roslyn$(ROSLYN_VERSION)/dotnet/cs" Visible="false" />
-        <None Include="$(OutputPath)\$(AssemblyName).Annotations.dll" Pack="true" PackagePath="analyzers/roslyn$(ROSLYN_VERSION)/dotnet/cs" Visible="false" />
-        <None Include="$(OutputPath)\$(AssemblyName).Annotations.pdb" Pack="true" PackagePath="analyzers/roslyn$(ROSLYN_VERSION)/dotnet/cs" Visible="false" />
-        <None Include="$(OutputPath)\$(AssemblyName).Annotations.dll" Pack="true" PackagePath="lib\netstandard2.0" Visible="true" />
-        <None Include="$(OutputPath)\$(AssemblyName).Annotations.pdb" Pack="true" PackagePath="lib\netstandard2.0" Visible="true" />
-        <None Include="$(OutputPath)\$(AssemblyName).Annotations.xml" Pack="true" PackagePath="lib\netstandard2.0" Visible="true" />
         <None Include="AutoExceptionHandler.targets" Pack="true" PackagePath="build" Visible="false" />
     </ItemGroup>
 
@@ -89,5 +86,9 @@
         <AutoGen>True</AutoGen>
         <DependentUpon>SourceTemplates.resx</DependentUpon>
       </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="$(AssemblyName).Tests" />
     </ItemGroup>
 </Project>

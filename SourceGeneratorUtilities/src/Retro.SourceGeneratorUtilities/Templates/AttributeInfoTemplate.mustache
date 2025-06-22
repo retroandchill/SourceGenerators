@@ -9,7 +9,7 @@ using Retro.SourceGeneratorUtilities.Utilities.Types;
 
 namespace {{Namespace}};
 
-public static class {{Name}}Extensions {
+internal static class {{Name}}Extensions {
 
   public static {{Name}} Get{{Name}}(this AttributeData data) {
     return data.TryGet{{Name}}(out var info) ? info : throw new InvalidOperationException("Cannot create {{AttributeName}}Info");

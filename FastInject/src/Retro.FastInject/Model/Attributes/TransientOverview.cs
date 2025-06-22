@@ -14,7 +14,7 @@ namespace Retro.FastInject.Model.Attributes;
 /// The type symbol representing the service type associated with the transient dependency.
 /// </param>
 [AttributeInfoType<TransientAttribute>]
-public record TransientOverview(ITypeSymbol Type) : DependencyOverview(Type, ServiceScope.Transient);
+internal record TransientOverview(ITypeSymbol Type) : DependencyOverview(Type, ServiceScope.Transient);
 
 /// <summary>
 /// Represents an overview of a transient dependency with one generic parameter within the dependency injection system.
@@ -27,4 +27,4 @@ public record TransientOverview(ITypeSymbol Type) : DependencyOverview(Type, Ser
 /// The type symbol representing the service type associated with the generic transient dependency.
 /// </param>
 [AttributeInfoType(typeof(TransientAttribute<>))]
-public record TransientOneParamOverview(ITypeSymbol Type) : TransientOverview(Type);
+internal record TransientOneParamOverview(ITypeSymbol Type) : TransientOverview(Type);

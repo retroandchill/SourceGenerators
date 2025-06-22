@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -14,7 +13,7 @@ namespace Retro.FastInject.Generation;
 /// Useful for ensuring proper dependency management and detecting issues such as circular dependencies
 /// within the dependency injection process.
 /// </summary>
-public static class ValidationExtensions {
+internal static class ValidationExtensions {
   
   /// <summary>
   /// Validates the entire dependency graph for circular dependencies.

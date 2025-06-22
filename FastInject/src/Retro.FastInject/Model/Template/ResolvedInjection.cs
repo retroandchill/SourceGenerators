@@ -1,14 +1,15 @@
 ﻿using Microsoft.CodeAnalysis;
 using Retro.FastInject.Generation;
 using Retro.FastInject.Model.Manifest;
-using Retro.FastInject.Utils;
+using Retro.SourceGeneratorUtilities.Utilities.Types;
+
 namespace Retro.FastInject.Model.Template;
 
 /// <summary>
 /// Represents a resolved injection for a service, containing the service name, type,
 /// and an optional index when applicable.
 /// </summary>
-public record ResolvedInjection {
+internal record ResolvedInjection {
   /// <summary>
   /// Gets the name of the service associated with the resolved injection.
   /// This property identifies the specific service within the dependency injection context.

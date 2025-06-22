@@ -1,7 +1,6 @@
-﻿using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Retro.FastInject.Annotations;
-using Retro.FastInject.Utils;
+using Retro.SourceGeneratorUtilities.Utilities.Types;
 
 namespace Retro.FastInject.Model.Manifest;
 
@@ -13,7 +12,7 @@ namespace Retro.FastInject.Model.Manifest;
 /// optional implementation type, keys for distinguishing registrations, and associated
 /// metadata for resolving dependencies during runtime.
 /// </remarks>
-public record ServiceRegistration {
+internal record ServiceRegistration {
   /// Represents the type of the service being registered.
   /// This property is required and is used to define the type of the service
   /// in the dependency injection container.

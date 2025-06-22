@@ -4,11 +4,12 @@ using HandlebarsDotNet;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Retro.AutoCommandLine.Core.Attributes;
-using Retro.AutoCommandLine.Model;
+using Retro.AutoCommandLine.Attributes;
 using Retro.AutoCommandLine.Model.Attributes;
+using Retro.AutoCommandLine.Model.Commands;
 using Retro.AutoCommandLine.Properties;
 using Retro.AutoCommandLine.Utils;
+using Retro.SourceGeneratorUtilities.Utilities;
 namespace Retro.AutoCommandLine.Generators;
 
 [Generator]

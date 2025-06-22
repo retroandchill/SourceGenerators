@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 using AutoExceptionHandler.Annotations;
+using AutoExceptionHandler.Model;
 using AutoExceptionHandler.Properties;
-using AutoExceptionHandler.Utilities;
 using HandlebarsDotNet;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Retro.SourceGeneratorUtilities.Utilities.Attributes;
+using Retro.SourceGeneratorUtilities.Utilities.Members;
+using Retro.SourceGeneratorUtilities.Utilities.Types;
 
 namespace AutoExceptionHandler.Generator;
 
@@ -60,10 +63,8 @@ internal class ExceptionHandlerGenerator : IIncrementalGenerator {
     if (classSymbol is null) {
       throw new ArgumentNullException(nameof(handlerClass));
     }
-    var attributeData = classSymbol
-        .GetAttributes()
-        .FirstOrDefault(x => x.IsOfAttributeType<ExceptionHandlerAttribute>());
-    if (attributeData is null) {
+    
+    if (!classSymbol.HasAttribute<ExceptionHandlerAttribute>()) {
       return;
     }
     
@@ -119,10 +120,10 @@ internal class ExceptionHandlerGenerator : IIncrementalGenerator {
                           ExceptionTypes = exceptionTypes
                               .Select((t, j) => new {
                                   ExceptionName = t.ToDisplayString(),
-                                  Comma = j != exceptionTypes.Count - 1
+                                  Comma = j != exceptionTypes.Length - 1
                               })
                               .ToList(),
-                          SingleException = exceptionTypes.Count == 1,
+                          SingleException = exceptionTypes.Length == 1,
                           Index = i,
                           MethodName = y.Symbol.Name,
                           ExceptionType = y.Symbol.Parameters[0].Type.ToDisplayString(),
@@ -167,18 +168,18 @@ internal class ExceptionHandlerGenerator : IIncrementalGenerator {
       return false;
     }
     
-    var attribute = methodSymbol.GetAttribute<GeneralExceptionHandlerAttribute>();
-    return attribute is not null && methodSymbol.Parameters.Length > 0 && methodSymbol.Parameters[0].Type.IsExceptionType();
+    return methodSymbol.HasAttribute<GeneralExceptionHandlerAttribute>() && methodSymbol.Parameters.Length > 0 
+                                                                         && methodSymbol.Parameters[0].Type.IsAssignableTo<Exception>();
   }
 
   private static bool IsFallbackHandler(IMethodSymbol methodSymbol) {
-    var attribute = methodSymbol.GetAttribute<FallbackExceptionHandlerAttribute>();
-    return attribute is not null && methodSymbol.Parameters.Length > 0 && methodSymbol.Parameters[0].Type.IsExceptionType();
+    return methodSymbol.HasAttribute<FallbackExceptionHandlerAttribute>() && methodSymbol.Parameters.Length > 0 
+                                                                          && methodSymbol.Parameters[0].Type.IsAssignableTo<Exception>();
   }
   
   private static bool IsSpecificHandler(IMethodSymbol methodSymbol) {
-    var attribute = methodSymbol.GetAttribute<HandlesExceptionAttribute>();
-    return attribute is not null && methodSymbol.Parameters.Length > 0 && methodSymbol.Parameters[0].Type.IsExceptionType();
+    return methodSymbol.HasAttribute<HandlesExceptionAttribute>() && methodSymbol.Parameters.Length > 0 
+                                                                  && methodSymbol.Parameters[0].Type.IsAssignableTo<Exception>();
   }
 
   private static bool IsValidHandler(IMethodSymbol parent, IMethodSymbol child) {
@@ -186,12 +187,12 @@ internal class ExceptionHandlerGenerator : IIncrementalGenerator {
       return false;
     }
     
-    if (!GetExceptionTypes(child).All(x => x!.ConvertableTo(parent.Parameters[0].Type))) {
+    if (!GetExceptionTypes(child).All(x => x!.IsAssignableTo(parent.Parameters[0].Type))) {
       return false;
     }
 
     for (var i = 1; i < child.Parameters.Length; i++) {
-      if (!parent.Parameters[i].Type.ConvertableTo(child.Parameters[i].Type)) {
+      if (!parent.Parameters[i].Type.IsAssignableTo(child.Parameters[i].Type)) {
         return false;
       }
     }
@@ -204,22 +205,16 @@ internal class ExceptionHandlerGenerator : IIncrementalGenerator {
       return false;
     }
 
-    return !child.Parameters.Where((t, i) => !parent.Parameters[i].Type.ConvertableTo(t.Type)).Any();
+    return !child.Parameters.Where((t, i) => !parent.Parameters[i].Type.IsAssignableTo(t.Type)).Any();
   }
 
-  private static List<ITypeSymbol> GetExceptionTypes(IMethodSymbol method) {
-    var parameterPack = method.GetAttribute<HandlesExceptionAttribute>()!.ConstructorArguments.FirstOrDefault();
-    var exceptionTypes = parameterPack.Values
-        .Where(a => a.Kind == TypedConstantKind.Type)
-        .Select(a => a.Value as ITypeSymbol)
-        .Where(a => a is not null)
-        .ToList();
+  private static ImmutableArray<ITypeSymbol> GetExceptionTypes(IMethodSymbol method) {
+    var exceptionTypes = method.GetAttributes().GetHandlesExceptionInfos()
+        .Select(x => x.ExceptionTypes)
+        .Single();
 
-    if (exceptionTypes.Count == 0) {
-      exceptionTypes.Add(method.Parameters[0].Type);
-    }
-    
-    return exceptionTypes!;
+    return exceptionTypes.Length == 0 ? [method.Parameters[0].Type] : exceptionTypes;
+
   }
 
 }

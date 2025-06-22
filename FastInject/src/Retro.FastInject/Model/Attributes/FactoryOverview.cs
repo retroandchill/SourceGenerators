@@ -14,7 +14,7 @@ namespace Retro.FastInject.Model.Attributes;
 /// Specifies the lifecycle scope of the service within the dependency injection container.
 /// </param>
 [AttributeInfoType<FactoryAttribute>]
-public record FactoryOverview(ServiceScope Scope) {
+internal record FactoryOverview(ServiceScope Scope) {
 
   /// <summary>
   /// Gets or initializes the configuration key associated with this factory overview.

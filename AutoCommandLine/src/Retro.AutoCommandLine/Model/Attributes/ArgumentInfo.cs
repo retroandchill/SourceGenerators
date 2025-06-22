@@ -1,5 +1,5 @@
 ﻿using System.Collections.Immutable;
-using Retro.AutoCommandLine.Core.Attributes;
+using Retro.AutoCommandLine.Attributes;
 using Retro.SourceGeneratorUtilities.Utilities.Attributes;
 namespace Retro.AutoCommandLine.Model.Attributes;
 

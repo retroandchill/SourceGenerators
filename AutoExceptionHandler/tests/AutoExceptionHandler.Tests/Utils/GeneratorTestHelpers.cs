@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using AutoExceptionHandler.Generator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -12,9 +13,15 @@ public static class GeneratorTestHelpers {
         .Select(a => a.Location)
         .Where(a => !string.IsNullOrEmpty(a))
         .Select(l => MetadataReference.CreateFromFile(l));
-    return CSharpCompilation.Create("compilation",
+    var baseCompilation = CSharpCompilation.Create("compilation",
         [CSharpSyntaxTree.ParseText(source)],
         assemblies,
         new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+    
+    var generator = new CopyFilesGenerator();
+    var driver = CSharpGeneratorDriver.Create(generator);
+    driver.RunGeneratorsAndUpdateCompilation(baseCompilation, out var outputCompilation, out _);
+    
+    return outputCompilation;
   }
 }

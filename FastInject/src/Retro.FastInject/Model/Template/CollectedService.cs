@@ -9,7 +9,7 @@ namespace Retro.FastInject.Model.Template;
 /// This class encapsulates the data of a specific service registration, including its type,
 /// index, and its status as primary or the last registration in a sequence.
 /// </remarks>
-public class CollectedService(ServiceRegistration registration, bool isLast) {
+internal class CollectedService(ServiceRegistration registration, bool isLast) {
   /// <summary>
   /// Gets the fully qualified type name of the service associated with this registration.
   /// </summary>

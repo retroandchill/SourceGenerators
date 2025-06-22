@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
+﻿using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Retro.FastInject.Annotations;
 using Retro.FastInject.Comparers;
-using Retro.FastInject.Utils;
 using Retro.SourceGeneratorUtilities.Utilities.Types;
 
 namespace Retro.FastInject.Model.Manifest;
@@ -15,7 +11,7 @@ namespace Retro.FastInject.Model.Manifest;
 /// Provides functionalities to track and retrieve services based on different parameters such as
 /// lifetime, associated keys, and constructor dependencies.
 /// </summary>
-public class ServiceManifest {
+internal class ServiceManifest {
   private readonly Dictionary<ITypeSymbol, List<ServiceRegistration>> _services =
       new(TypeSymbolEqualityComparer.Instance);
 

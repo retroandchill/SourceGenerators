@@ -4,6 +4,7 @@
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -20,7 +21,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\ReadOnlyParams\src\Retro.ReadOnlyParams.Annotations\Retro.ReadOnlyParams.Annotations.csproj" />
       <ProjectReference Include="..\..\..\ReadOnlyParams\src\Retro.ReadOnlyParams\Retro.ReadOnlyParams.csproj"  OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
     </ItemGroup>
 

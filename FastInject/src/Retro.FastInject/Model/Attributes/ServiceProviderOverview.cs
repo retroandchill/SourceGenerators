@@ -12,7 +12,7 @@ namespace Retro.FastInject.Model.Attributes;
 /// Retro.FastInject framework.
 /// </remarks>
 [AttributeInfoType<ServiceProviderAttribute>]
-public record ServiceProviderOverview {
+internal record ServiceProviderOverview {
 
   /// <summary>
   /// Determines whether the service provider allows dynamic registrations

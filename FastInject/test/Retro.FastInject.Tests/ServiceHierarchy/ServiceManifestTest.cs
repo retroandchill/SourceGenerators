@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,7 +8,7 @@ using Retro.FastInject.Annotations;
 using Retro.FastInject.Generation;
 using Retro.FastInject.Model.Manifest;
 using Retro.FastInject.Tests.Utils;
-using Retro.FastInject.Utils;
+using Retro.SourceGeneratorUtilities.Utilities.Types;
 
 namespace Retro.FastInject.Tests.ServiceHierarchy;
 

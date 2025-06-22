@@ -6,7 +6,7 @@ namespace Retro.FastInject.Model.Manifest;
 /// <summary>
 /// Records all service resolutions for a constructor.
 /// </summary>
-public class ConstructorResolution {
+internal class ConstructorResolution {
   /// <summary>
   /// The constructor that was resolved
   /// </summary>

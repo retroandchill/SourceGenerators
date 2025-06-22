@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -7,8 +6,7 @@ using Retro.FastInject.Annotations;
 using Retro.FastInject.Comparers;
 using Retro.FastInject.Model.Attributes;
 using Retro.FastInject.Model.Detection;
-using Retro.FastInject.Model.Manifest;
-using Retro.FastInject.Utils;
+using Retro.SourceGeneratorUtilities.Utilities.Types;
 
 namespace Retro.FastInject.Generation;
 
@@ -16,7 +14,7 @@ namespace Retro.FastInject.Generation;
 /// Provides extension methods for analyzing and retrieving dependency injection service details
 /// from Roslyn `ITypeSymbol` representations of classes or types.
 /// </summary>
-public static class DependencyExtensions {
+internal static class DependencyExtensions {
   /// <summary>
   /// Retrieves a collection of services injected into the specified class using attributes,
   /// factory methods, or instance members. This method analyzes the class for services that

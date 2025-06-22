@@ -1,10 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Retro.FastInject.Annotations;
 using Retro.FastInject.Generation;
 using Retro.FastInject.Model.Manifest;
-using Retro.FastInject.Utils;
+using Retro.SourceGeneratorUtilities.Utilities.Types;
 
 namespace Retro.FastInject.Model.Template;
 
@@ -12,7 +10,7 @@ namespace Retro.FastInject.Model.Template;
 /// Represents a service injection that is used to hold details about a service
 /// registration and its associated parameters, used during dependency injection.
 /// </summary>
-public record ServiceInjection {
+internal record ServiceInjection {
 
   /// <summary>
   /// Gets the display string representing the type of the service associated with this injection.

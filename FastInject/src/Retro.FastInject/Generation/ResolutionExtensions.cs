@@ -1,17 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Retro.FastInject.Model.Manifest;
-using System.Linq;
 using System.Text;
-using Microsoft.Extensions.DependencyInjection;
 using Retro.FastInject.Annotations;
 using Retro.FastInject.Comparers;
 using Retro.FastInject.Model.Attributes;
-using Retro.FastInject.Utils;
 using Retro.SourceGeneratorUtilities.Utilities.Attributes;
+using Retro.SourceGeneratorUtilities.Utilities.Members;
+using Retro.SourceGeneratorUtilities.Utilities.Types;
 
 namespace Retro.FastInject.Generation;
 
@@ -19,7 +17,7 @@ namespace Retro.FastInject.Generation;
 /// Provides extension methods for resolving and manipulating parameter resolution details
 /// used in the dependency injection service hierarchy.
 /// </summary>
-public static class ResolutionExtensions {
+internal static class ResolutionExtensions {
   /// <summary>
   /// Checks if all dependencies in the constructor of the specified service registration can be resolved and records the resolution.
   /// </summary>

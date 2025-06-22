@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -14,10 +13,17 @@ public static class GeneratorTestHelpers {
         .Select(a => a.Location)
         .Where(a => !string.IsNullOrEmpty(a))
         .Select(l => MetadataReference.CreateFromFile(l));
-    return CSharpCompilation.Create("compilation",
-                                    [CSharpSyntaxTree.ParseText(source)],
-                                    assemblies,
-                                    new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+    
+    var baseCompilation = CSharpCompilation.Create("compilation",
+        [CSharpSyntaxTree.ParseText(source)],
+        assemblies,
+        new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+    
+    var generator = new CopyFilesGenerator();
+    var driver = CSharpGeneratorDriver.Create(generator);
+    driver.RunGeneratorsAndUpdateCompilation(baseCompilation, out var outputCompilation, out _);
+    
+    return outputCompilation;
   }
 
   public static ITypeSymbol GetTypeSymbol(this Compilation compilation, string typeName) {
