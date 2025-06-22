@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
+﻿using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Retro.FastInject.Annotations;
 using Retro.FastInject.Comparers;
@@ -143,10 +141,7 @@ internal static class DependencyExtensions {
   }
 
   private static IEnumerable<ServiceDeclaration> GetFactoryServices(IMethodSymbol methodSymbol) {
-    var factoryAttribute = methodSymbol.GetAttributes()
-        .Select(a => a.TryGetFactoryOverview(out var info) ? info : null)
-        .FirstOrDefault();
-    if (factoryAttribute == null) {
+    if (!methodSymbol.TryGetFactoryOverview(out var factoryAttribute)) {
       return [];
     }
 

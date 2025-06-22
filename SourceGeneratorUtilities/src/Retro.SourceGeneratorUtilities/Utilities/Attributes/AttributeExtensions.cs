@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 using Retro.SourceGeneratorUtilities.Utilities.Model.Attributes;
 using Retro.SourceGeneratorUtilities.Utilities.Types;
 #if SOURCE_UTILS_GENERATOR
@@ -99,7 +100,28 @@ internal static class AttributeExtensions {
   /// it is inheritable.
   /// </returns>
   public static AttributeUsageInfo GetUsageInfo(this AttributeData attributeData) {
-    var attributeUsage = attributeData.AttributeClass?.GetAttributes()
+    return attributeData.AttributeClass?.GetUsageInfo() ?? throw new InvalidOperationException("Symbol is not an attribute");
+  }
+
+  /// <summary>
+  /// Retrieves the <see cref="AttributeUsageInfo"/> of the specified <see cref="INamedTypeSymbol"/>
+  /// if it represents an attribute type.
+  /// </summary>
+  /// <param name="symbol">
+  /// The <see cref="INamedTypeSymbol"/> for which to retrieve the attribute usage information.
+  /// </param>
+  /// <returns>
+  /// The <see cref="AttributeUsageInfo"/> for the specified <see cref="INamedTypeSymbol"/> representing an attribute.
+  /// </returns>
+  /// <exception cref="InvalidOperationException">
+  /// Thrown if the provided symbol does not represent an attribute or has an invalid attribute usage configuration.
+  /// </exception>
+  public static AttributeUsageInfo GetUsageInfo(this INamedTypeSymbol symbol) {
+    if (!symbol.IsAssignableTo<Attribute>()) {
+      throw new InvalidOperationException("Symbol is not an attribute");
+    }
+    
+    var attributeUsage = symbol.GetAttributes()
         .SingleOrDefault(a => a.AttributeClass?.IsAssignableTo<AttributeUsageAttribute>() ?? false);
 
     if (attributeUsage is null) {

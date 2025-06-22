@@ -13,7 +13,63 @@ internal static class {{Name}}Extensions {
 
   public static {{Name}} Get{{Name}}(this AttributeData data) {
     return data.TryGet{{Name}}(out var info) ? info : throw new InvalidOperationException("Cannot create {{AttributeName}}Info");
-  }  
+  }
+  {{^AllowMultiple}}
+  {{#ValidOnAssembly}}
+    
+  public static {{Name}} Get{{Name}}(this IAssemblySymbol assembly) {
+    return assembly.TryGet{{Name}}(out var info) ? info : throw new InvalidOperationException("Cannot create {{Name}}");
+  }
+  {{/ValidOnAssembly}}
+  {{#ValidOnModule}}
+    
+  public static {{Name}} Get{{Name}}(this IModuleSymbol module) {
+    return module.TryGet{{Name}}(out var info) ? info : throw new InvalidOperationException("Cannot create {{Name}}");
+  }
+  {{/ValidOnModule}}
+  {{#ValidOnNamedType}}
+    
+  public static {{Name}} Get{{Name}}(this INamedTypeSymbol type) {
+    return type.TryGet{{Name}}(out var info) ? info : throw new InvalidOperationException("Cannot create {{Name}}");
+  }
+  {{/ValidOnNamedType}}
+  {{#ValidOnGenericParameter}}
+    
+  public static {{Name}} Get{{Name}}(this ITypeParameterSymbol type) {
+    return type.TryGet{{Name}}(out var info) ? info : throw new InvalidOperationException("Cannot create {{Name}}");
+  }
+  {{/ValidOnGenericParameter}}
+  {{#ValidOnAnyMethod}}
+    
+  public static {{Name}} Get{{Name}}(this IMethodSymbol method) {
+    return method.TryGet{{Name}}(out var info) ? info : throw new InvalidOperationException("Cannot create {{Name}}");
+  }
+  {{/ValidOnAnyMethod}}
+  {{#ValidOnProperty}}
+    
+  public static {{Name}} Get{{Name}}(this IPropertySymbol property) {
+    return property.TryGet{{Name}}(out var info) ? info : throw new InvalidOperationException("Cannot create {{Name}}");
+  }
+  {{/ValidOnProperty}}
+  {{#ValidOnField}}
+    
+  public static {{Name}} Get{{Name}}(this IFieldSymbol fieldSymbol) {
+    return fieldSymbol.TryGet{{Name}}(out var info) ? info : throw new InvalidOperationException("Cannot create {{Name}}");
+  }
+  {{/ValidOnField}}
+  {{#ValidOnEvent}}
+    
+  public static {{Name}} Get{{Name}}(this IEventSymbol eventSymbol) {
+    return eventSymbol.TryGet{{Name}}(out var info) ? info : throw new InvalidOperationException("Cannot create {{Name}}");
+  }
+  {{/ValidOnEvent}}
+  {{#ValidOnReturnValue}}
+    
+  public static {{Name}} Get{{Name}}OnReturnValue(this IMethodSymbol method) {
+    return method.TryGet{{Name}}OnReturnValue(out var info) ? info : throw new InvalidOperationException("Cannot create {{Name}}");
+  }
+  {{/ValidOnReturnValue}}
+  {{/AllowMultiple}}
 
   public static bool TryGet{{Name}}(this AttributeData data, {{^IsValueType}}[NotNullWhen(true)] {{/IsValueType}}out {{Name}}{{^IsValueType}}?{{/IsValueType}} info) {
     var args = data.ConstructorArguments;
@@ -56,6 +112,104 @@ internal static class {{Name}}Extensions {
     info = {{#IsValueType}}default{{/IsValueType}}{{^IsValueType}}null{{/IsValueType}};;
     return false;
   }
+  {{^AllowMultiple}}
+  {{#ValidOnAssembly}}
+    
+  public static bool TryGet{{Name}}(this IAssemblySymbol assembly, {{^IsValueType}}[NotNullWhen(true)] {{/IsValueType}}out {{Name}}{{^IsValueType}}?{{/IsValueType}} info) {
+    return assembly.GetAttributes().TryGet{{Name}}(out info);    
+  }
+  {{/ValidOnAssembly}}
+  {{#ValidOnModule}}
+    
+  public static bool TryGet{{Name}}(this IModuleSymbol module, {{^IsValueType}}[NotNullWhen(true)] {{/IsValueType}}out {{Name}}{{^IsValueType}}?{{/IsValueType}} info) {
+    return module.GetAttributes().TryGet{{Name}}(out info);    
+  }
+  {{/ValidOnModule}}
+  {{#ValidOnNamedType}}
+    
+  public static bool TryGet{{Name}}(this INamedTypeSymbol type, {{^IsValueType}}[NotNullWhen(true)] {{/IsValueType}}out {{Name}}{{^IsValueType}}?{{/IsValueType}} info) {
+    {{^ValidOnAnyType}}
+    if (type.TypeKind is not {{#ValidOnTypes}}TypeKind.{{Kind}}{{^IsLast}} or {{/IsLast}}{{/ValidOnTypes}}) {
+      throw new InvalidOperationException("The attribute '{{AttributeTypeofName}}' is only valid one of the following types: {{#ValidOnTypes}}{{Kind}}{{^IsLast}}, {{/IsLast}}{{/ValidOnTypes}}");
+    }
+
+    {{/ValidOnAnyType}}
+    return type.GetAttributes().TryGet{{Name}}(out info);    
+  }
+  {{/ValidOnNamedType}}
+  {{#ValidOnGenericParameter}}
+    
+  public static bool TryGet{{Name}}(this ITypeParameterSymbol type, {{^IsValueType}}[NotNullWhen(true)] {{/IsValueType}}out {{Name}}{{^IsValueType}}?{{/IsValueType}} info) {
+    return type.GetAttributes().TryGet{{Name}}(out info);    
+  }
+  {{/ValidOnGenericParameter}}
+  {{#ValidOnAnyMethod}}
+    
+  public static bool TryGet{{Name}}(this IMethodSymbol method, {{^IsValueType}}[NotNullWhen(true)] {{/IsValueType}}out {{Name}}{{^IsValueType}}?{{/IsValueType}} info) {
+    {{#OnlyValidOnConstructor}}
+    if (handlerMethod.MethodKind != MethodKind.Constructor) {
+      throw new InvalidOperationException("The attribute '{{AttributeTypeofName}}' is only valid on constructors.");
+    }
+
+    {{/OnlyValidOnConstructor}}
+    return method.GetAttributes().TryGet{{Name}}(out info);    
+  }
+  {{/ValidOnAnyMethod}}
+  {{#ValidOnProperty}}
+    
+  public static bool TryGet{{Name}}(this IPropertySymbol property, {{^IsValueType}}[NotNullWhen(true)] {{/IsValueType}}out {{Name}}{{^IsValueType}}?{{/IsValueType}} info) {
+    return property.GetAttributes().TryGet{{Name}}(out info);    
+  }
+  {{/ValidOnProperty}}
+  {{#ValidOnField}}
+    
+  public static bool TryGet{{Name}}(this IFieldSymbol fieldSymbol, {{^IsValueType}}[NotNullWhen(true)] {{/IsValueType}}out {{Name}}{{^IsValueType}}?{{/IsValueType}} info) {
+    return fieldSymbol.GetAttributes().TryGet{{Name}}(out info);    
+  }
+  {{/ValidOnField}}
+  {{#ValidOnEvent}}
+    
+  public static bool TryGet{{Name}}(this IEventSymbol eventSymbol, {{^IsValueType}}[NotNullWhen(true)] {{/IsValueType}}out {{Name}}{{^IsValueType}}?{{/IsValueType}} info) {
+    return eventSymbol.GetAttributes().TryGet{{Name}}(out info);    
+  }
+  {{/ValidOnEvent}}
+  {{#ValidOnReturnValue}}
+    
+  public static bool TryGet{{Name}}OnReturnValue(this IMethodSymbol method, {{^IsValueType}}[NotNullWhen(true)] {{/IsValueType}}out {{Name}}{{^IsValueType}}?{{/IsValueType}} info) {
+    return method.GetReturnTypeAttributes().TryGet{{Name}}(out info);    
+  }
+  {{/ValidOnReturnValue}}
+  {{#ValidOnSymbols}}
+    
+  public static bool TryGet{{../Name}}(this {{Name}} symbol, {{^if ../IsValueType}}[NotNullWhen(true)] {{/if}}out {{../Name}}{{^if ../IsValueType}}?{{/if}} info) {
+    return symbol.GetAttributes().TryGet{{../Name}}(out info);    
+  }  
+  {{/ValidOnSymbols}}
+    
+   private static bool TryGet{{Name}}(this IEnumerable<AttributeData> attributes, {{^IsValueType}}[NotNullWhen(true)] {{/IsValueType}}out {{Name}}{{^IsValueType}}?{{/IsValueType}} info) {
+    var result = attributes.Get{{Name}}s()
+        {{#IsValueType}}
+        .Cast<{{Name}}?>()  
+        {{/IsValueType}}
+        .SingleOrDefault();
+
+    {{#IsValueType}}
+    if (result.HasValue) {
+      info = result.Value;
+      return true;
+    }
+    {{/IsValueType}}
+    {{^IsValueType}}
+    if (result is not null) {
+      info = result;
+      return true;
+    }
+    {{/IsValueType}}
+      
+    info = {{#IsValueType}}default{{/IsValueType}}{{^IsValueType}}null{{/IsValueType}};
+    return false;     
+  }   
+  {{/AllowMultiple}}
 
   public static IEnumerable<{{Name}}> Get{{Name}}s(this IEnumerable<AttributeData> attributeDatas) {
     foreach (var data in attributeDatas) {
@@ -64,5 +218,73 @@ internal static class {{Name}}Extensions {
       }
     }
   }
+  {{#AllowMultiple}}
+  {{#ValidOnAssembly}}
+    
+  public static IEnumerable<{{Name}}> Get{{Name}}s(this IAssemblySymbol assembly) {
+    return assembly.GetAttributes().Get{{Name}}s();
+  }
+  {{/ValidOnAssembly}}
+  {{#ValidOnModule}}
+    
+  public static IEnumerable<{{Name}}> Get{{Name}}s(this IModuleSymbol module) {
+    return module.GetAttributes().Get{{Name}}s();
+  }
+  {{/ValidOnModule}}
+  {{#ValidOnNamedType}}
+    
+  public static IEnumerable<{{Name}}> Get{{Name}}s(this INamedTypeSymbol type) {
+    {{^ValidOnAnyType}}
+    if (type.TypeKind is not {{#ValidOnTypes}}TypeKind.{{Kind}}{{^IsLast}} or {{/IsLast}}{{/ValidOnTypes}}) {
+      throw new InvalidOperationException("The attribute '{{AttributeTypeofName}}' is only valid one of the following types: {{#ValidOnTypes}}{{Kind}}{{^IsLast}}, {{/IsLast}}{{/ValidOnTypes}}");
+    }
+
+    {{/ValidOnAnyType}}
+    return type.GetAttributes().Get{{Name}}s();
+  }
+  {{/ValidOnNamedType}}
+  {{#ValidOnGenericParameter}}
+    
+  public static IEnumerable<{{Name}}> Get{{Name}}s(this ITypeParameterSymbol type) {
+    return type.GetAttributes().Get{{Name}}s();
+  }
+  {{/ValidOnGenericParameter}}
+  {{#ValidOnAnyMethod}}
+    
+  public static IEnumerable<{{Name}}> Get{{Name}}s(this IMethodSymbol method) {
+    {{#OnlyValidOnConstructor}}
+    if (handlerMethod.MethodKind != MethodKind.Constructor) {
+      throw new InvalidOperationException("The attribute '{{AttributeTypeofName}}' is only valid on constructors.");
+    }
+
+    {{/OnlyValidOnConstructor}}
+    return method.GetAttributes().Get{{Name}}s();
+  }
+  {{/ValidOnAnyMethod}}
+  {{#ValidOnProperty}}
+    
+  public static IEnumerable<{{Name}}> Get{{Name}}s(this IPropertySymbol property) {
+    return property.GetAttributes().Get{{Name}}s();
+  }
+  {{/ValidOnProperty}}
+  {{#ValidOnField}}
+    
+  public static IEnumerable<{{Name}}> Get{{Name}}s(this IFieldSymbol fieldSymbol) {
+    return fieldSymbol.GetAttributes().Get{{Name}}s();
+  }
+  {{/ValidOnField}}
+  {{#ValidOnEvent}}
+    
+  public static IEnumerable<{{Name}}> Get{{Name}}s(this IEventSymbol eventSymbol) {
+    return eventSymbol.GetAttributes().Get{{Name}}s();
+  }
+  {{/ValidOnEvent}}
+  {{#ValidOnReturnValue}}
+    
+  public static IEnumerable<{{Name}}> Get{{Name}}sOnReturnValue(this IMethodSymbol method) {
+    return method.GetReturnTypeAttributes().Get{{Name}}s();
+  }
+  {{/ValidOnReturnValue}}
+  {{/AllowMultiple}}  
 
 }
