@@ -28,10 +28,10 @@
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Retro.SourceGeneratorUtilities" Version="0.1.2" />
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\..\SourceGeneratorUtilities\src\Retro.SourceGeneratorUtilities\Retro.SourceGeneratorUtilities.csproj"  OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
       <ProjectReference Include="..\Retro.AutoCommandLine.Core\Retro.AutoCommandLine.Core.csproj" />
     </ItemGroup>
 

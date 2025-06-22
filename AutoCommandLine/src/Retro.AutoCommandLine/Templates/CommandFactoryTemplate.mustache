@@ -36,7 +36,7 @@ public static class {{ClassName}}Factory {
         throw new InvalidOperationException("No command line context was found");
       }  
       var binder = context.GetBinder<{{../ClassName}}>();
-      var cmd = binder.Bind(context);
+      var cmd = binder.Bind(ctx);
       
       {{#ReturnsValue}}ctx.ExitCode = {{/ReturnsValue}}{{#IsAsync}}await {{/IsAsync}}cmd.{{Name}}({{#HasCancellationToken}}ctx.GetCancellationToken(){{/HasCancellationToken}});
     });
