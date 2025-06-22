@@ -10,4 +10,4 @@ namespace Retro.FastInject.Model.Manifest;
 /// This struct encapsulates the type information and service scope associated with a resolved dependency.
 /// It is primarily used to define how a specific dependency is resolved within a service hierarchy.
 /// </remarks>
-public record struct ResolvedDependencyArguments(ITypeSymbol Type, ServiceScope Scope);
+internal record struct ResolvedDependencyArguments(ITypeSymbol Type, ServiceScope Scope);

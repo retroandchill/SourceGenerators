@@ -8,7 +8,7 @@ namespace Retro.FastInject.Model.Template;
 /// Represents a parameter resolution for dependency injection, containing information 
 /// about a parameter and how it should be resolved.
 /// </summary>
-public record ParameterInjection {
+internal record ParameterInjection {
   /// <summary>
   /// Gets or sets the type of the parameter.
   /// </summary>

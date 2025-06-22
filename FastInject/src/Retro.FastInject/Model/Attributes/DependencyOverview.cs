@@ -14,7 +14,7 @@ namespace Retro.FastInject.Model.Attributes;
 /// The service scope that determines the lifetime of the dependency (e.g., Singleton, Scoped, Transient).
 /// </param>
 [AttributeInfoType<DependencyAttribute>]
-public record DependencyOverview(ITypeSymbol Type, ServiceScope Scope) {
+internal record DependencyOverview(ITypeSymbol Type, ServiceScope Scope) {
   /// <summary>
   /// Gets or initializes the key associated with the dependency overview.
   /// This key can be utilized to uniquely identify a dependency

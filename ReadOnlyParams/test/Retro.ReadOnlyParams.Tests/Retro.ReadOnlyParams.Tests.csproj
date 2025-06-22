@@ -22,7 +22,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\Retro.ReadOnlyParams.Annotations\Retro.ReadOnlyParams.Annotations.csproj" />
         <ProjectReference Include="..\..\src\Retro.ReadOnlyParams\Retro.ReadOnlyParams.csproj"/>
     </ItemGroup>
 

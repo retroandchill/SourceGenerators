@@ -8,7 +8,7 @@ namespace Retro.FastInject.Model.Detection;
 /// This encapsulates metadata associated with a specific service type, its lifetime scope,
 /// an optional key for uniquely identifying instances, and potentially an associated symbol.
 /// </summary>
-public record ServiceDeclaration(
+internal record ServiceDeclaration(
     ITypeSymbol Type,
     ServiceScope Lifetime,
     string? Key,

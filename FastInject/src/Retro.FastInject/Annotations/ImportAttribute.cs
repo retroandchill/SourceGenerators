@@ -1,5 +1,10 @@
 ﻿using System;
+#if FAST_INJECT_GENERATOR
+using RhoMicro.CodeAnalysis;
+#endif
+
 namespace Retro.FastInject.Annotations;
+
 
 /// <summary>
 /// Specifies that a class or struct requires the import of another type for dependency injection purposes.
@@ -9,7 +14,10 @@ namespace Retro.FastInject.Annotations;
 /// and should import its services and dependencies. The attribute supports optional dynamic registration of dependencies.
 /// </remarks>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = true)]
-public class ImportAttribute(Type moduleType) : Attribute {
+#if FAST_INJECT_GENERATOR
+[IncludeFile]
+#endif
+internal class ImportAttribute(Type moduleType) : Attribute {
 
   /// <summary>
   /// Represents the type of the module that is required to be imported by the annotated class or struct
@@ -37,4 +45,4 @@ public class ImportAttribute(Type moduleType) : Attribute {
 /// it supports configurable dynamic registration to facilitate more flexible dependency management.
 /// </remarks>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = true)]
-public class ImportAttribute<TModule>() : ImportAttribute(typeof(TModule));
+internal class ImportAttribute<TModule>() : ImportAttribute(typeof(TModule));

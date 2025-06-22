@@ -9,7 +9,7 @@ namespace Retro.FastInject.Generation;
 /// Responsible for generating a service manifest that organizes and maps services, their implementations,
 /// lifetimes, base types, and indirect relationships within a dependency injection framework.
 /// </summary>
-public static class ServiceManifestGenerator {
+internal static class ServiceManifestGenerator {
   /// <summary>
   /// Generates a manifest that maps services to their implementations, lifetimes, base types, and indirect relationships.
   /// </summary>

@@ -4,7 +4,7 @@ using HandlebarsDotNet;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Retro.AutoCommandLine.Core.Attributes;
+using Retro.AutoCommandLine.Attributes;
 using Retro.AutoCommandLine.Model;
 using Retro.AutoCommandLine.Model.Attributes;
 using Retro.AutoCommandLine.Properties;

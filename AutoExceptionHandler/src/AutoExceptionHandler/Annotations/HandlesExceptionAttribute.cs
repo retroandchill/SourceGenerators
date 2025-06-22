@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
+#if AUTO_EXCEPTION_HANDLER_GENERATOR
+using RhoMicro.CodeAnalysis;
+#endif
 
 namespace AutoExceptionHandler.Annotations;
 
@@ -27,6 +30,9 @@ namespace AutoExceptionHandler.Annotations;
 /// </example>
 [AttributeUsage(AttributeTargets.Method)]
 [Conditional("AUTO_EXCEPTION_HANDLER_SCOPE_RUNTIME")]
-public class HandlesExceptionAttribute(params Type[] exceptionTypes) : Attribute;
+#if AUTO_EXCEPTION_HANDLER_GENERATOR
+[IncludeFile]
+#endif
+internal class HandlesExceptionAttribute(params Type[] exceptionTypes) : Attribute;
 
 #pragma warning restore 9113

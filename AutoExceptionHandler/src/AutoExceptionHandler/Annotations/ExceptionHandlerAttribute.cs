@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
+#if AUTO_EXCEPTION_HANDLER_GENERATOR
+using RhoMicro.CodeAnalysis;
+#endif
 
 namespace AutoExceptionHandler.Annotations;
 
@@ -15,4 +18,7 @@ namespace AutoExceptionHandler.Annotations;
 /// <seealso cref="GeneralExceptionHandlerAttribute"/>
 [AttributeUsage(AttributeTargets.Class)]
 [Conditional("AUTO_EXCEPTION_HANDLER_SCOPE_RUNTIME")]
-public class ExceptionHandlerAttribute : Attribute;
+#if AUTO_EXCEPTION_HANDLER_GENERATOR
+[IncludeFile]
+#endif
+internal class ExceptionHandlerAttribute : Attribute;

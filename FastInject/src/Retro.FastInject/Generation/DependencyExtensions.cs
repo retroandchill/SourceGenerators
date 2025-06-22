@@ -15,7 +15,7 @@ namespace Retro.FastInject.Generation;
 /// Provides extension methods for analyzing and retrieving dependency injection service details
 /// from Roslyn `ITypeSymbol` representations of classes or types.
 /// </summary>
-public static class DependencyExtensions {
+internal static class DependencyExtensions {
   /// <summary>
   /// Retrieves a collection of services injected into the specified class using attributes,
   /// factory methods, or instance members. This method analyzes the class for services that

@@ -1,4 +1,8 @@
 ﻿using System;
+#if FAST_INJECT_GENERATOR
+using RhoMicro.CodeAnalysis;
+#endif
+
 namespace Retro.FastInject.Annotations;
 
 /// <summary>
@@ -10,7 +14,10 @@ namespace Retro.FastInject.Annotations;
 /// This attribute can be applied multiple times to allow registration for different service types.
 /// </remarks>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, AllowMultiple = true)]
-public class ScopedAttribute(Type serviceType) : DependencyAttribute(serviceType, ServiceScope.Scoped);
+#if FAST_INJECT_GENERATOR
+[IncludeFile]
+#endif
+internal class ScopedAttribute(Type serviceType) : DependencyAttribute(serviceType, ServiceScope.Scoped);
 
 /// <summary>
 /// Attribute specifying that the decorated type is registered with a scoped lifecycle in a dependency injection container.
@@ -21,4 +28,4 @@ public class ScopedAttribute(Type serviceType) : DependencyAttribute(serviceType
 /// Can be applied multiple times to facilitate registration for different service types.
 /// </remarks>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, AllowMultiple = true)]
-public class ScopedAttribute<TService>() : ScopedAttribute(typeof(TService));
+internal class ScopedAttribute<TService>() : ScopedAttribute(typeof(TService));

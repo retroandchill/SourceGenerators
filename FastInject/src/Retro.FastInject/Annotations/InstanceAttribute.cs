@@ -1,4 +1,7 @@
 ﻿using System;
+#if FAST_INJECT_GENERATOR
+using RhoMicro.CodeAnalysis;
+#endif
 
 namespace Retro.FastInject.Annotations;
 
@@ -18,7 +21,10 @@ namespace Retro.FastInject.Annotations;
 /// </example>
 /// <seealso cref="Attribute"/>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
-public class InstanceAttribute : Attribute {
+#if FAST_INJECT_GENERATOR
+[IncludeFile]
+#endif
+internal class InstanceAttribute : Attribute {
 
   /// <summary>
   /// Gets or initializes the unique identifier associated with the instance dependency.

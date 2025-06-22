@@ -19,6 +19,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\..\ReadOnlyParams\src\Retro.ReadOnlyParams\Retro.ReadOnlyParams.csproj"  OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
       <ProjectReference Include="..\Retro.FastInject.Core\Retro.FastInject.Core.csproj" />
     </ItemGroup>
 

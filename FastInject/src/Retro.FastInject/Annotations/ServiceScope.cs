@@ -1,4 +1,8 @@
-﻿namespace Retro.FastInject.Annotations;
+﻿#if FAST_INJECT_GENERATOR
+using RhoMicro.CodeAnalysis;
+#endif
+
+namespace Retro.FastInject.Annotations;
 
 /// <summary>
 /// Specifies that the service has a singleton lifecycle in a dependency injection container.
@@ -8,7 +12,10 @@
 /// throughout the lifetime of the application. All requests for the service resolve to the
 /// same, single instance.
 /// </remarks>
-public enum ServiceScope {
+#if FAST_INJECT_GENERATOR
+[IncludeFile]
+#endif
+internal enum ServiceScope {
   /// <summary>
   /// A singleton service, meaning only one instance is created and shared throughout the lifetime of the application.
   /// </summary>

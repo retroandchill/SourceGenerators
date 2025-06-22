@@ -1,4 +1,8 @@
 ﻿using System;
+#if FAST_INJECT_GENERATOR
+using RhoMicro.CodeAnalysis;
+#endif
+
 namespace Retro.FastInject.Annotations;
 
 /// <summary>
@@ -14,4 +18,7 @@ namespace Retro.FastInject.Annotations;
 /// service is determined at runtime, such as resolving services from key-based factories or dynamic providers.
 /// </example>
 [AttributeUsage(AttributeTargets.Parameter)]
-public class AllowDynamicAttribute : Attribute;
+#if FAST_INJECT_GENERATOR
+[IncludeFile]
+#endif
+internal class AllowDynamicAttribute : Attribute;

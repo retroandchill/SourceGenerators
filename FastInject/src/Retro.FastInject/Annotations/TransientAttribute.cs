@@ -1,4 +1,8 @@
 ﻿using System;
+#if FAST_INJECT_GENERATOR
+using RhoMicro.CodeAnalysis;
+#endif
+
 namespace Retro.FastInject.Annotations;
 
 /// <summary>
@@ -9,7 +13,10 @@ namespace Retro.FastInject.Annotations;
 /// A transient service is created each time it is requested, ensuring a new instance is provided for each dependency resolution.
 /// </remarks>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, AllowMultiple = true)]
-public class TransientAttribute(Type serviceType) : DependencyAttribute(serviceType, ServiceScope.Transient);
+#if FAST_INJECT_GENERATOR
+[IncludeFile]
+#endif
+internal class TransientAttribute(Type serviceType) : DependencyAttribute(serviceType, ServiceScope.Transient);
 
 /// <summary>
 /// Marks the annotated type to be registered with a transient lifecycle in the dependency injection container.
@@ -19,4 +26,4 @@ public class TransientAttribute(Type serviceType) : DependencyAttribute(serviceT
 /// It is particularly useful for stateless or short-lived services where shared state is unnecessary.
 /// </remarks>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, AllowMultiple = true)]
-public class TransientAttribute<TService>() : TransientAttribute(typeof(TService));
+internal class TransientAttribute<TService>() : TransientAttribute(typeof(TService));

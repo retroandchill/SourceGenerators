@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Retro.AutoCommandLine.Core;
-using Retro.AutoCommandLine.Core.Attributes;
-using Retro.AutoCommandLine.Core.Handlers;
+using Retro.AutoCommandLine.Attributes;
 namespace Retro.AutoCommandLine.Sample.Commands;
 
 /// <summary>

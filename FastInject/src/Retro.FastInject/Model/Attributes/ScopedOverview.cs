@@ -15,7 +15,7 @@ namespace Retro.FastInject.Model.Attributes;
 /// This indicates the interface or class registered with a scoped lifetime.
 /// </param>
 [AttributeInfoType<ScopedAttribute>]
-public record ScopedOverview(ITypeSymbol Type) : DependencyOverview(Type, ServiceScope.Scoped);
+internal record ScopedOverview(ITypeSymbol Type) : DependencyOverview(Type, ServiceScope.Scoped);
 
 /// <summary>
 /// Represents an overview model specifically tailored for scoped services with a single generic parameter in dependency injection frameworks.
@@ -30,4 +30,4 @@ public record ScopedOverview(ITypeSymbol Type) : DependencyOverview(Type, Servic
 /// This indicates the generic service type registered with a scoped lifetime.
 /// </param>
 [AttributeInfoType(typeof(ScopedAttribute<>))]
-public record ScopedOneParamOverview(ITypeSymbol Type) : ScopedOverview(Type);
+internal record ScopedOneParamOverview(ITypeSymbol Type) : ScopedOverview(Type);

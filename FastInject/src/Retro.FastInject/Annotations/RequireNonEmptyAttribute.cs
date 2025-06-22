@@ -1,4 +1,8 @@
 ﻿using System;
+#if FAST_INJECT_GENERATOR
+using RhoMicro.CodeAnalysis;
+#endif
+
 namespace Retro.FastInject.Annotations;
 
 /// <summary>
@@ -15,4 +19,7 @@ namespace Retro.FastInject.Annotations;
 /// that services of a specific type are available and non-empty.
 /// </example>
 [AttributeUsage(AttributeTargets.Parameter)]
-public class RequireNonEmptyAttribute : Attribute;
+#if FAST_INJECT_GENERATOR
+[IncludeFile]
+#endif
+internal class RequireNonEmptyAttribute : Attribute;

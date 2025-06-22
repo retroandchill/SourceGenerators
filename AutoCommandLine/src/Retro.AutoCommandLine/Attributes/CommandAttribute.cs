@@ -1,8 +1,15 @@
 ﻿using System;
-namespace Retro.AutoCommandLine.Core.Attributes;
+#if AUTO_COMMAND_LINE_GENERATOR
+using RhoMicro.CodeAnalysis;
+#endif
+
+namespace Retro.AutoCommandLine.Attributes;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface)]
-public class CommandAttribute(string? name = null) : Attribute {
+#if AUTO_COMMAND_LINE_GENERATOR
+[IncludeFile]
+#endif
+internal class CommandAttribute(string? name = null) : Attribute {
   public string? Name { get; } = name;
   
   public string? Description { get; init; }

@@ -5,7 +5,7 @@ namespace Retro.FastInject.Model.Manifest;
 /// <summary>
 /// Records a service resolution for a constructor parameter.
 /// </summary>
-public record ParameterResolution {
+internal record ParameterResolution {
   /// <summary>
   /// The parameter symbol
   /// </summary>

@@ -1,4 +1,7 @@
 ﻿using System;
+#if READONLYPARAMS_GENERATOR
+using RhoMicro.CodeAnalysis;
+#endif
 
 namespace Retro.ReadOnlyParams.Annotations;
 
@@ -12,4 +15,7 @@ namespace Retro.ReadOnlyParams.Annotations;
 /// </remarks>
 /// <seealso cref="Attribute" />
 [AttributeUsage(AttributeTargets.Parameter)]
-public class ReadOnlyAttribute : Attribute;
+#if READONLYPARAMS_GENERATOR
+[IncludeFile]
+#endif
+internal class ReadOnlyAttribute : Attribute;

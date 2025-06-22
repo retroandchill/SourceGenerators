@@ -20,4 +20,8 @@
       <Compile Remove="Handlers\CommandHandlerAdapter.cs" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Attributes\" />
+    </ItemGroup>
+
 </Project>

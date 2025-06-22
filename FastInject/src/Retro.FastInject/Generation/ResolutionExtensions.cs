@@ -18,7 +18,7 @@ namespace Retro.FastInject.Generation;
 /// Provides extension methods for resolving and manipulating parameter resolution details
 /// used in the dependency injection service hierarchy.
 /// </summary>
-public static class ResolutionExtensions {
+internal static class ResolutionExtensions {
   /// <summary>
   /// Checks if all dependencies in the constructor of the specified service registration can be resolved and records the resolution.
   /// </summary>

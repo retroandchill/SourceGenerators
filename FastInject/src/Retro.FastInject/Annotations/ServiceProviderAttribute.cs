@@ -1,4 +1,8 @@
 ﻿using System;
+#if FAST_INJECT_GENERATOR
+using RhoMicro.CodeAnalysis;
+#endif
+
 namespace Retro.FastInject.Annotations;
 
 /// <summary>
@@ -17,7 +21,10 @@ namespace Retro.FastInject.Annotations;
 /// as <c>SingletonAttribute</c> can be used to specify service lifetimes.
 /// </example>
 [AttributeUsage(AttributeTargets.Class)]
-public class ServiceProviderAttribute : Attribute {
+#if FAST_INJECT_GENERATOR
+[IncludeFile]
+#endif
+internal class ServiceProviderAttribute : Attribute {
   
   /// <summary>
   /// Specifies whether dynamic registrations are allowed for the associated property or field.

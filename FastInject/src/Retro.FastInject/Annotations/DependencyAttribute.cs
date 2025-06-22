@@ -1,4 +1,8 @@
 ﻿using System;
+#if FAST_INJECT_GENERATOR
+using RhoMicro.CodeAnalysis;
+#endif
+
 namespace Retro.FastInject.Annotations;
 
 /// <summary>
@@ -9,7 +13,10 @@ namespace Retro.FastInject.Annotations;
 /// It can be used multiple times on the same type to register it for different services or configurations.
 /// </remarks>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, AllowMultiple = true)]
-public class DependencyAttribute(Type type, ServiceScope scope) : Attribute {
+#if FAST_INJECT_GENERATOR
+[IncludeFile]
+#endif
+internal class DependencyAttribute(Type type, ServiceScope scope) : Attribute {
 
   /// <summary>
   /// Gets the type that represents the service or implementation being registered in a dependency injection container.

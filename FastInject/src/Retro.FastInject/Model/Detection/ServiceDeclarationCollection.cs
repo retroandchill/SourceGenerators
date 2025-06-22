@@ -16,9 +16,9 @@ namespace Retro.FastInject.Model.Detection;
 /// <param name="containerType">The named type symbol representing the container type.</param>
 /// <param name="serviceDeclarations">An immutable array of service declarations associated with the container.</param>
 /// <param name="allowDynamicServices">A flag indicating whether dynamic service resolution is allowed.</param>
-public readonly struct ServiceDeclarationCollection(INamedTypeSymbol containerType, 
-                                                    [ReadOnly] ImmutableArray<ServiceDeclaration> serviceDeclarations,
-                                                    bool allowDynamicServices) : IReadOnlyList<ServiceDeclaration> {
+internal readonly struct ServiceDeclarationCollection(INamedTypeSymbol containerType, 
+                                                      [ReadOnly] ImmutableArray<ServiceDeclaration> serviceDeclarations,
+                                                      bool allowDynamicServices) : IReadOnlyList<ServiceDeclaration> {
   
   /// <summary>
   /// Gets the named type symbol representing the container type for these service declarations.

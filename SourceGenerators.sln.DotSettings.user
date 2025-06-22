@@ -11,4 +11,6 @@
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;NUnit3x::0EF989A9-9BCF-479F-9F61-97BBD4DF5EEA::net9.0::AutoExceptionHandler.Tests.ExceptionHandlerGeneratorTest.GenerateReportMethod&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
-&lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>
+&lt;/SessionState&gt;</s:String>
+	
+	</wpf:ResourceDictionary>

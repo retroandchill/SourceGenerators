@@ -11,7 +11,7 @@ namespace Retro.FastInject.Model.Manifest;
 /// Provides functionalities to track and retrieve services based on different parameters such as
 /// lifetime, associated keys, and constructor dependencies.
 /// </summary>
-public class ServiceManifest {
+internal class ServiceManifest {
   private readonly Dictionary<ITypeSymbol, List<ServiceRegistration>> _services =
       new(TypeSymbolEqualityComparer.Instance);
 
