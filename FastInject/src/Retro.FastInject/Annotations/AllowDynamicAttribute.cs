@@ -1,5 +1,7 @@
 ﻿#if FAST_INJECT_GENERATOR
 using RhoMicro.CodeAnalysis;
+#else
+using System;
 #endif
 
 namespace Retro.FastInject.Annotations;
