@@ -23,11 +23,9 @@ public record ProgramRootCommand {
   
   [Option(Description = "An optional option")]
   public bool OptionalOption { get; init; }
-}
 
-public class ProgramRootCommandHandler : ICommandHandler<ProgramRootCommand> {
-
-  public async Task<int> HandleAsync(ProgramRootCommand options, CancellationToken cancellationToken = default) {
+  [CommandHandler]
+  public async Task<int> InvokeAsync(CancellationToken cancellationToken = default) {
     await Console.Out.WriteLineAsync("Hello world");
     return 0;
   }

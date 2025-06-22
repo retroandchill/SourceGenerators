@@ -1,15 +1,12 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
+﻿using System.ComponentModel;
 using CaseConverter;
 using HandlebarsDotNet;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Retro.AutoCommandLine.Core;
 using Retro.AutoCommandLine.Core.Attributes;
-using Retro.AutoCommandLine.Core.Handlers;
 using Retro.AutoCommandLine.Model;
+using Retro.AutoCommandLine.Model.Attributes;
 using Retro.AutoCommandLine.Properties;
 using Retro.AutoCommandLine.Utils;
 namespace Retro.AutoCommandLine.Generators;
@@ -36,39 +33,14 @@ public class CommandBinderGenerator : IIncrementalGenerator {
         .Where(m => m is not null)
         .Collect();
 
-    var handlers = context.SyntaxProvider.CreateSyntaxProvider(
-        (s, _) => s is ClassDeclarationSyntax or StructDeclarationSyntax,
-        (ctx, _) => {
-          var classNode = (TypeDeclarationSyntax)ctx.Node;
-          var symbol = ctx.SemanticModel.GetDeclaredSymbol(classNode);
-          return symbol?.AllInterfaces
-              .Where(x => x.IsGenericType && x.ConstructedFrom.GetMetadataName() == typeof(ICommandHandler<>).FullName)
-              .Select(x => new {
-                  ClassSymbol = symbol,
-                  BoundType = x.TypeArguments[0]
-              })
-              .FirstOrDefault();
-        })
-        .Where(m => m is not null)
-        .Collect();
-    
-    var combinedTypes = commands.Combine(handlers);
-
-    context.RegisterSourceOutput(combinedTypes, (spc, source) => {
-      var handlerTypes = source.Right
-          .GroupBy(x => x!.BoundType, SymbolEqualityComparer.Default)
-          .ToDictionary(x => x.Key, x => x
-              .Select(y => y!.ClassSymbol)
-              .First(), SymbolEqualityComparer.Default);
-      
-      foreach (var classSymbol in source.Left) {
-        handlerTypes.TryGetValue(classSymbol!, out var handlerClassSymbol);
-        GenerateIndividualHandlers(classSymbol!, handlerClassSymbol, spc);
+    context.RegisterSourceOutput(commands, (spc, source) => {
+      foreach (var classSymbol in source) {
+        GenerateIndividualHandlers(classSymbol!, spc);
       }
     });
   }
 
-  private static void GenerateIndividualHandlers(INamedTypeSymbol classSymbol, INamedTypeSymbol? handlerType, SourceProductionContext context) {
+  private static void GenerateIndividualHandlers(INamedTypeSymbol classSymbol, SourceProductionContext context) {
     var commandAttribute = classSymbol.GetAttributes()
         .Single(x => x.AttributeClass?.ToDisplayString() == typeof(CommandAttribute).FullName);
     
@@ -85,6 +57,7 @@ public class CommandBinderGenerator : IIncrementalGenerator {
         .FirstOrDefault(x => x.Key == nameof(CommandAttribute.Description)).Value.Value?.ToString()
         ?? classSymbol.GetDocumentationCommentXml().GetSummaryTag();
     
+    var handlerMethod = GetHandlerMethod(classSymbol, context);
     var templateParams = new {
         Namespace = classSymbol.ContainingNamespace.ToDisplayString(),
         ClassName = classSymbol.Name,
@@ -96,7 +69,7 @@ public class CommandBinderGenerator : IIncrementalGenerator {
         HasDescription = description is not null,
         Description = description is not null ? SymbolDisplay.FormatLiteral(description, true) : null,
         Options = optionBindings,
-        HasHandler = handlerType is not null
+        Handler = ValidateHandlerMethod(handlerMethod, context),
     };
 
     var handlebars = Handlebars.Create();
@@ -108,10 +81,10 @@ public class CommandBinderGenerator : IIncrementalGenerator {
 
   private static OptionBinding GetOptionBinding(IPropertySymbol propertySymbol, bool isLast) {
     var optionAttribute = propertySymbol.GetAttributes()
-        .Where(x => x.AttributeClass?.ToDisplayString() == typeof(OptionAttribute).FullName || x.AttributeClass?.ToDisplayString() == typeof(ArgumentAttribute).FullName)
+        .GetCliParameterInfos()
         .Select(x => new {
-            IsOption = x.AttributeClass?.ToDisplayString() == typeof(OptionAttribute).FullName,
-            Description = x.NamedArguments.FirstOrDefault(y => y.Key == nameof(OptionAttribute.Description)).Value.Value as string,
+            IsOption = x is OptionInfo,
+            x.Description,
             Aliases = GetAliases(propertySymbol, x)
         })
         .DefaultIfEmpty(new { IsOption = false, Description = (string?) null, Aliases = new List<OptionAlias>() })
@@ -131,13 +104,12 @@ public class CommandBinderGenerator : IIncrementalGenerator {
     };
   }
 
-  private static List<OptionAlias> GetAliases(IPropertySymbol propertySymbol, AttributeData optionAttribute) {
-    if (optionAttribute.AttributeClass?.ToDisplayString() != typeof(OptionAttribute).FullName) {
+  private static List<OptionAlias> GetAliases(IPropertySymbol propertySymbol, CliParameterInfo optionAttribute) {
+    if (optionAttribute is not OptionInfo optionInfo) {
       return [];
     }
 
-    var aliases = optionAttribute.ConstructorArguments[0].Values;
-    if (aliases.Length == 0) {
+    if (optionInfo.Aliases.Length == 0) {
       return [
           new OptionAlias {
               Name = $"--{propertySymbol.Name.ToKebabCase()}",
@@ -146,12 +118,10 @@ public class CommandBinderGenerator : IIncrementalGenerator {
       ];
     }
     
-    return aliases
-        .Select(x => x.Value)
-        .Cast<string>()
+    return optionInfo.Aliases
         .Select((x, i) => new OptionAlias {
             Name = x,
-            IsLast = i == aliases.Length - 1
+            IsLast = i == optionInfo.Aliases.Length - 1
         })
         .ToList();
   }
@@ -170,5 +140,111 @@ public class CommandBinderGenerator : IIncrementalGenerator {
         IsReferenceType: true,
         NullableAnnotation: NullableAnnotation.NotAnnotated
     };
+  }
+  
+  private static IMethodSymbol? GetHandlerMethod(INamedTypeSymbol classSymbol, SourceProductionContext context) {
+    try {
+      return classSymbol
+          .GetMembers()
+          .OfType<IMethodSymbol>()
+          .Where(x => x.DeclaredAccessibility == Accessibility.Public)
+          .SingleOrDefault(x => x.GetAttributes().Any(attr => attr.AttributeClass?.ToDisplayString() == typeof(CommandHandlerAttribute).FullName));
+    } catch (InvalidOperationException) {
+      context.ReportDiagnostic(Diagnostic.Create(
+          new DiagnosticDescriptor(
+              "CMD0001",
+              "Command has multiple handlers",
+              "Command has multiple handlers. Please use only one handler method.",
+              "Retro.AutoCommandLine",
+              DiagnosticSeverity.Error,
+              true),
+          Location.None));
+      return null;
+    }
+  }
+  
+  private static HandlerMethodInfo? ValidateHandlerMethod(IMethodSymbol? handlerMethod, SourceProductionContext context) {
+    if (handlerMethod is null) {
+      return null;
+    }
+
+    var returnType = ValidateHandlerMethodReturnType(handlerMethod, context);
+    if (!returnType.HasValue) {
+      return null;
+    }
+
+    if (!ValidateHandlerMethodParameters(handlerMethod, context)) {
+      return null;
+    }
+
+    return new HandlerMethodInfo {
+        Name = handlerMethod.Name,
+        ReturnType = returnType.Value,
+        HasCancellationToken = handlerMethod.Parameters.Length == 1
+    };
+  }
+
+  private static HandlerReturnType? ValidateHandlerMethodReturnType(IMethodSymbol handlerMethod, SourceProductionContext context) {
+    if (handlerMethod.ReturnsVoid) {
+      return HandlerReturnType.Void;
+    }
+    
+    var returnType = handlerMethod.ReturnType;
+    if (returnType.SpecialType == SpecialType.System_Int32) {
+      return HandlerReturnType.Int;
+    }
+
+    var typeName = returnType.ToDisplayString();
+    if (typeName == typeof(Task).FullName) {
+      return HandlerReturnType.Task;
+    }
+    
+    if (typeName == $"{typeof(Task).FullName}<int>") {
+      return HandlerReturnType.TaskOfInt;
+    }
+
+    
+    context.ReportDiagnostic(Diagnostic.Create(
+        new DiagnosticDescriptor(
+            "CMD0002",
+            "Command return type invalid",
+            $"The command handler has an invalid return type of {typeName}. Please return either void, int, Task, or Task<int>.",
+            "Retro.AutoCommandLine",
+            DiagnosticSeverity.Error,
+            true),
+        Location.None));
+    return null;
+  }
+
+  private static bool ValidateHandlerMethodParameters(IMethodSymbol handlerMethod, SourceProductionContext context) {
+    if (handlerMethod.ReturnsVoid || handlerMethod.ReturnType.SpecialType == SpecialType.System_Int32) {
+      if (handlerMethod.Parameters.Length <= 0) return true;
+
+      context.ReportDiagnostic(Diagnostic.Create(
+          new DiagnosticDescriptor(
+              "CMD0003",
+              "Command has invalid parameters",
+              "The command handler has invalid parameters. For a return type of void or int, please use no parameters.",
+              "Retro.AutoCommandLine",
+              DiagnosticSeverity.Error,
+              true),
+          Location.None));
+      return false;
+    }
+
+    if (handlerMethod.Parameters.Length > 1 || (handlerMethod.Parameters.Length == 1 && handlerMethod.Parameters[0].ToDisplayString() == typeof(CancellationToken).FullName)) {
+      context.ReportDiagnostic(Diagnostic.Create(
+          new DiagnosticDescriptor(
+              "CMD0003",
+              "Command has invalid parameters",
+              "The command handler has invalid parameters. For a return type of Task or Task<int>, you may have at least one parameter of type CancellationToken.",
+              "Retro.AutoCommandLine",
+              DiagnosticSeverity.Error,
+              true),
+          Location.None));
+      return false;
+    }
+
+    return true;
   }
 }

@@ -1,8 +1,8 @@
-﻿using System.CommandLine;
+﻿using System;
+using System.CommandLine;
 using Retro.AutoCommandLine.Sample.Commands;
 
-
-var factory = new CommandHandlerFactory();
-var rootCommand = ProgramRootCommandFactory.Create(factory);
+var context = new CommandContext();
+var rootCommand = ProgramRootCommandFactory.Create(context);
 
 return await rootCommand.InvokeAsync(args);

@@ -6,7 +6,7 @@ namespace {{Namespace}};
 
 public static class {{ClassName}}Factory {
 
-  public static Command Create(ICommandHandlerFactory handlerFactory) {
+  public static Command Create() {
     {{#IsRootCommand}}
     var command = new RootCommand({{#HasDescription}}{{Description}}{{/HasDescription}});  
     {{/IsRootCommand}}
@@ -29,9 +29,18 @@ public static class {{ClassName}}Factory {
     command.Add{{Wrapper}}({{Name}}{{Wrapper}});
     {{/Options}}
 
-    {{#HasHandler}}
-    command.Handler = new CommandHandlerAdapter<{{ClassName}}>(handlerFactory, new {{ClassName}}Binder({{#Options}}{{Name}}{{Wrapper}}{{^IsLast}}, {{/IsLast}}{{/Options}}));
-    {{/HasHandler}}
+    {{#Handler}}
+    command.SetHandler({{#IsAsync}}async {{/IsAsync}}ctx => {
+      var context = (ICommandLineContext) ctx.BindingContext.GetService(typeof(ICommandLineContext));
+      if (context is null) {
+        throw new InvalidOperationException("No command line context was found");
+      }  
+      var binder = context.GetBinder<{{../ClassName}}>();
+      var cmd = binder.Bind(context);
+      
+      {{#ReturnsValue}}ctx.ExitCode = {{/ReturnsValue}}{{#IsAsync}}await {{/IsAsync}}cmd.{{Name}}({{#HasCancellationToken}}ctx.GetCancellationToken(){{/HasCancellationToken}});
+    });
+    {{/Handler}}
 
     return command;
   }
