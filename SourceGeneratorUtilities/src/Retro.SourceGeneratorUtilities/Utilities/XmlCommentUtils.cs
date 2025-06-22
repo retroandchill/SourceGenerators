@@ -1,8 +1,14 @@
-﻿using System.Linq;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using System.Xml;
-namespace Retro.AutoCommandLine.Utils;
+#if SOURCE_UTILS_GENERATOR
+using RhoMicro.CodeAnalysis;
+#endif
 
+namespace Retro.SourceGeneratorUtilities.Utilities;
+
+#if SOURCE_UTILS_GENERATOR
+[IncludeFile]
+#endif
 public static class XmlCommentUtils {
 
   private static readonly Regex Trimmer = new(@"\s\s+");
