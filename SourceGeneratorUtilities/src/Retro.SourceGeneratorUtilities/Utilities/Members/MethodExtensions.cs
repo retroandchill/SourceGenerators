@@ -1,10 +1,17 @@
 ﻿using Microsoft.CodeAnalysis;
+using Retro.SourceGeneratorUtilities.Utilities.Types;
+#if SOURCE_UTILS_GENERATOR
+using RhoMicro.CodeAnalysis;
+#endif
 
-namespace AutoExceptionHandler.Utilities;
+namespace Retro.SourceGeneratorUtilities.Utilities.Members;
 
 /// <summary>
 /// Provides extension methods for working with methods represented as <see cref="IMethodSymbol"/>.
 /// </summary>
+#if SOURCE_UTILS_GENERATOR
+[IncludeFile]
+#endif
 internal static class MethodExtensions {
 
   /// <summary>
@@ -20,7 +27,7 @@ internal static class MethodExtensions {
       return true;
     }
 
-    return !otherMethod.ReturnsVoid && otherMethod.ReturnType.ConvertableTo(method.ReturnType);
+    return !otherMethod.ReturnsVoid && otherMethod.ReturnType.IsAssignableTo(method.ReturnType);
   }
 
   /// <summary>

@@ -2,7 +2,8 @@ using System.Linq;
 using AutoExceptionHandler.Annotations;
 using AutoExceptionHandler.Generator;
 using Microsoft.CodeAnalysis.CSharp;
-using Xunit;
+using NUnit.Framework;
+
 using static AutoExceptionHandler.Tests.Utils.GeneratorTestHelpers;
 
 namespace AutoExceptionHandler.Tests;
@@ -62,7 +63,7 @@ public class ExceptionHandlerGeneratorTest {
                                                     }
                                                     """;
 
-  [Fact]
+  [Test]
   public void GenerateReportMethod() {
     // Create an instance of the source generator.
     var generator = new ExceptionHandlerGenerator();
@@ -80,7 +81,6 @@ public class ExceptionHandlerGeneratorTest {
     var generatedFileSyntax = runResult.GeneratedTrees.Single(t => t.FilePath.EndsWith("ExampleHandler.g.cs"));
 
     // Complex generators should be tested using text comparison.
-    Assert.Equal(ExpectedGeneratedClassText, generatedFileSyntax.GetText().ToString(),
-        ignoreLineEndingDifferences: true);
+    Assert.That(generatedFileSyntax.GetText().ToString(), Is.EqualTo(ExpectedGeneratedClassText));
   }
 }

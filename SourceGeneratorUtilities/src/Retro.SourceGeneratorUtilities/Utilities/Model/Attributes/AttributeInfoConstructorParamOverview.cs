@@ -30,8 +30,16 @@ public record struct AttributeInfoConstructorParamOverview(IParameterSymbol Symb
   /// set to <see cref="NullableAnnotation.NotAnnotated"/>. It provides a type representation that is explicitly
   /// non-nullable, regardless of the original nullable annotation of the parameter type.
   /// </remarks>
-  public string NonNullableType => Type.IsSameType<ITypeSymbol>() ? typeof(Type).FullName! : 
-      Type.WithNullableAnnotation(NullableAnnotation.NotAnnotated).ToDisplayString();
+  public string NonNullableType {
+    get {
+      if (Type.IsSameType<ITypeSymbol[]>()) {
+        return $"{typeof(Type).FullName}[]";
+      }
+      
+      return Type.IsSameType<ITypeSymbol>() ? typeof(Type).FullName! :
+          Type.WithNullableAnnotation(NullableAnnotation.NotAnnotated).ToDisplayString();
+    }
+  }
 
   /// <summary>
   /// Gets the name of the constructor parameter.
