@@ -1,0 +1,92 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <IsPackable>false</IsPackable>
+        <Nullable>enable</Nullable>
+        <LangVersion>latest</LangVersion>
+        <ImplicitUsings>true</ImplicitUsings>
+
+        <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+        <IsRoslynComponent>true</IsRoslynComponent>
+
+        <RootNamespace>Retro.FastInject</RootNamespace>
+        <PackageId>Retro.FastInject</PackageId>
+
+
+        <OutputPath>$(MSBuildProjectDirectory)\bin\$(Configuration)\netstandard2.0\</OutputPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Dunet" Version="1.11.2" />
+        <PackageReference Include="Handlebars.Net" Version="2.1.6" GeneratePathProperty="true" PrivateAssets="all"/>
+        <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="9.0.5" />
+        <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="4.13.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.13.0"/>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.5" GeneratePathProperty="true" PrivateAssets="all" />
+        <PackageReference Include="PolySharp" Version="1.15.0">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Retro.ReadOnlyParams" Version="1.0.0" />
+        <PackageReference Include="Retro.SourceGeneratorUtilities" Version="0.1.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Retro.FastInject.Annotations\Retro.FastInject.Annotations.csproj" PrivateAssets="all"/>
+    </ItemGroup>
+
+    <PropertyGroup>
+        <GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <DocumentationFile>$(MSBuildProjectDirectory)\bin\$(Configuration)\netstandard2.0\Retro.FastInject.xml</DocumentationFile>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <DebugSymbols>true</DebugSymbols>
+      <DocumentationFile>$(MSBuildProjectDirectory)\bin\$(Configuration)\netstandard2.0\Retro.FastInject.xml</DocumentationFile>
+    </PropertyGroup>
+
+    <Target Name="GetDependencyTargetPaths">
+        <ItemGroup>
+            <TargetPathWithTargetPlatformMoniker Include="$(PKGHandlebars_Net)\lib\netstandard2.0\Handlebars.dll" IncludeRuntimeDependency="false" />
+            <TargetPathWithTargetPlatformMoniker Include="$(PKGMicrosoft_Extensions_DependencyInjection_Abstractions)\lib\netstandard2.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll" IncludeRuntimeDependency="false" />
+            <TargetPathWithTargetPlatformMoniker Include="$(OutputPath)\$(AssemblyName).Annotations.dll"
+                                                 IncludeRuntimeDependency="false"/>
+            <ReferenceCopyLocalPaths Include="@(ReferenceCopyLocalPaths->'%(RootDir)%(Directory)%(Filename).xml')" Condition="Exists('%(RootDir)%(Directory)%(Filename).xml')" />
+        </ItemGroup>
+    </Target>
+
+    <ItemGroup>
+        <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/roslyn$(ROSLYN_VERSION)/dotnet/cs" Visible="false" />
+        <None Include="$(OutputPath)\$(AssemblyName).pdb" Pack="true" PackagePath="analyzers/roslyn$(ROSLYN_VERSION)/dotnet/cs" Visible="false" />
+        <None Include="$(PKGHandlebars_Net)\lib\netstandard2.0\Handlebars.dll" Pack="true" PackagePath="analyzers/roslyn$(ROSLYN_VERSION)/dotnet/cs" Visible="false" />
+        <None Include="$(PKGMicrosoft_Extensions_DependencyInjection_Abstractions)\lib\netstandard2.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll" Pack="true" PackagePath="analyzers/roslyn$(ROSLYN_VERSION)/dotnet/cs" Visible="false" />
+        <None Include="$(OutputPath)\$(AssemblyName).Annotations.dll" Pack="true" PackagePath="analyzers/roslyn$(ROSLYN_VERSION)/dotnet/cs" Visible="false" />
+        <None Include="$(OutputPath)\$(AssemblyName).Annotations.pdb" Pack="true" PackagePath="analyzers/roslyn$(ROSLYN_VERSION)/dotnet/cs" Visible="false" />
+        <None Include="$(OutputPath)\$(AssemblyName).Annotations.dll" Pack="true" PackagePath="lib\netstandard2.0" Visible="true" />
+        <None Include="$(OutputPath)\$(AssemblyName).Annotations.pdb" Pack="true" PackagePath="lib\netstandard2.0" Visible="true" />
+        <None Include="$(OutputPath)\$(AssemblyName).Annotations.xml" Pack="true" PackagePath="lib\netstandard2.0" Visible="true" />
+        <None Include="AutoExceptionHandler.targets" Pack="true" PackagePath="build" Visible="false" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Update="Properties\SourceTemplates.resx">
+        <Generator>ResXFileCodeGenerator</Generator>
+        <LastGenOutput>SourceTemplates.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="Properties\SourceTemplates.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>SourceTemplates.resx</DependentUpon>
+      </Compile>
+    </ItemGroup>
+</Project>

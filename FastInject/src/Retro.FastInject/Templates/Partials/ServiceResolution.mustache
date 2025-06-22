@@ -1,0 +1,29 @@
+﻿{{#FromOtherService}}
+return (({{providerInterface}}<{{OtherType}}>) {{providerInstance}}).{{getServiceMethod}}({{#if serviceKey}}serviceKey{{/if}});  
+{{/FromOtherService}}
+{{#IsSingleton}}
+{{#if isScope}}
+return (({{providerInterface}}<{{ServiceType}}>) _root).{{getServiceMethod}}({{#if serviceKey}}serviceKey{{/if}}); 
+{{else}}
+return {{> GetInitializingStatement}};
+{{/if}} 
+{{/IsSingleton}}
+{{#IsScoped}}
+{{#if isScope}}    
+return {{> GetInitializingStatement}};
+{{else}}
+return (({{providerInterface}}<{{ServiceType}}>) GetRootScope()).{{getServiceMethod}}({{#if serviceKey}}serviceKey{{/if}});
+{{/if}}
+{{/IsScoped}}
+{{#IsTransient}}
+var service = {{> GetInitializingStatement isScope=isScope}};  
+{{> DisposableManagement}}
+return service;  
+{{/IsTransient}}
+{{#IsCollection}}
+return [
+  {{#CollectedServices}}
+  {{#IsPrimary}}((IServiceProvider<{{ServiceType}}>) this).GetService(){{/IsPrimary}}{{^IsPrimary}}this.Get{{ServiceName}}_{{Index}}(){{/IsPrimary}}{{^IsLast}},{{/IsLast}}
+  {{/CollectedServices}} 
+];
+{{/IsCollection}}

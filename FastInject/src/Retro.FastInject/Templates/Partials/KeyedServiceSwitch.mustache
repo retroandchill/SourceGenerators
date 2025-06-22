@@ -1,0 +1,6 @@
+﻿return serviceKey switch {
+  {{#Options}}
+  "{{Key}}" => {{#IsPrimary}}((IServiceProvider<{{ServiceType}}>) this).GetService(),{{/IsPrimary}}{{^IsPrimary}}this.Get{{ServiceName}}_{{Index}}(),{{/IsPrimary}}
+  {{/Options}}
+  _ => null
+};
