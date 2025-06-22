@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
+﻿using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Retro.FastInject.Annotations;
 using Retro.FastInject.Comparers;
-using Retro.FastInject.Utils;
 using Retro.SourceGeneratorUtilities.Utilities.Types;
 
 namespace Retro.FastInject.Model.Manifest;

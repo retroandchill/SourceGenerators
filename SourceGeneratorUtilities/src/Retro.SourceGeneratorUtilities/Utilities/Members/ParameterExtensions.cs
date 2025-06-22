@@ -1,13 +1,17 @@
-﻿using System;
-using System.Linq;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
+#if SOURCE_UTILS_GENERATOR
+using RhoMicro.CodeAnalysis;
+#endif
 
-namespace Retro.FastInject.Utils;
+namespace Retro.SourceGeneratorUtilities.Utilities.Members;
 
 /// <summary>
 /// Provides extension methods for <see cref="IParameterSymbol"/> objects.
 /// </summary>
-public static class ParameterExtensions {
+#if SOURCE_UTILS_GENERATOR
+[IncludeFile]
+#endif
+internal static class ParameterExtensions {
   /// <summary>
   /// Retrieves the default value of the parameter as a string representation.
   /// </summary>

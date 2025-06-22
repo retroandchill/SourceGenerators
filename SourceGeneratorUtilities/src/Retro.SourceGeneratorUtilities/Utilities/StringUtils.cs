@@ -1,11 +1,16 @@
-﻿using System.Collections.Generic;
+﻿#if SOURCE_UTILS_GENERATOR
+using RhoMicro.CodeAnalysis;
+#endif
 
-namespace Retro.FastInject.Utils;
+namespace Retro.SourceGeneratorUtilities.Utilities;
 
 /// <summary>
 /// Provides utility methods for string manipulation and operations.
 /// </summary>
-public static class StringUtils {
+#if SOURCE_UTILS_GENERATOR
+[IncludeFile]
+#endif
+internal static class StringUtils {
   /// <summary>
   /// Concatenates the elements of a sequence of strings, using the specified separator between each element.
   /// </summary>

@@ -1,10 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Retro.FastInject.Annotations;
 using Retro.FastInject.Generation;
 using Retro.FastInject.Model.Manifest;
-using Retro.FastInject.Utils;
+using Retro.SourceGeneratorUtilities.Utilities.Types;
 
 namespace Retro.FastInject.Model.Template;
 

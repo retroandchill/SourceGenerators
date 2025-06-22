@@ -4,14 +4,13 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Retro.FastInject.Model.Manifest;
-using System.Linq;
 using System.Text;
-using Microsoft.Extensions.DependencyInjection;
 using Retro.FastInject.Annotations;
 using Retro.FastInject.Comparers;
 using Retro.FastInject.Model.Attributes;
-using Retro.FastInject.Utils;
 using Retro.SourceGeneratorUtilities.Utilities.Attributes;
+using Retro.SourceGeneratorUtilities.Utilities.Members;
+using Retro.SourceGeneratorUtilities.Utilities.Types;
 
 namespace Retro.FastInject.Generation;
 

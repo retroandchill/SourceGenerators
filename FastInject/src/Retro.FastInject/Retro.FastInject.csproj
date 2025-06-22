@@ -90,4 +90,12 @@
         <DependentUpon>SourceTemplates.resx</DependentUpon>
       </Compile>
     </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Utils\" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="$(AssemblyName).Tests" />
+    </ItemGroup>
 </Project>

@@ -7,8 +7,7 @@ using Retro.FastInject.Annotations;
 using Retro.FastInject.Comparers;
 using Retro.FastInject.Model.Attributes;
 using Retro.FastInject.Model.Detection;
-using Retro.FastInject.Model.Manifest;
-using Retro.FastInject.Utils;
+using Retro.SourceGeneratorUtilities.Utilities.Types;
 
 namespace Retro.FastInject.Generation;
 

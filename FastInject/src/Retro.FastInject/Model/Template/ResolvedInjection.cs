@@ -1,7 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
 using Retro.FastInject.Generation;
 using Retro.FastInject.Model.Manifest;
-using Retro.FastInject.Utils;
+using Retro.SourceGeneratorUtilities.Utilities.Types;
+
 namespace Retro.FastInject.Model.Template;
 
 /// <summary>

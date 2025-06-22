@@ -1,10 +1,8 @@
 ﻿using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using NUnit.Framework;
-using Retro.FastInject.Utils;
+using Retro.SourceGeneratorUtilities.Utilities.Members;
 using static Retro.FastInject.Tests.Utils.GeneratorTestHelpers;
 
 namespace Retro.FastInject.Tests.Utils;
@@ -295,7 +293,7 @@ internal class TestParameterSymbol(IParameterSymbol original, bool hasDefaultVal
     return original.ToMinimalDisplayParts(semanticModel, position, format);
   }
 
-  public bool Equals([NotNullWhen(true)] ISymbol? other, SymbolEqualityComparer equalityComparer) {
+  public bool Equals(ISymbol? other, SymbolEqualityComparer equalityComparer) {
     return original.Equals(other, equalityComparer);
   }
 
